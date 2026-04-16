@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply as Chief Agent Officer | CAO Partners</title>
+  <meta name="description" content="Apply for a Chief Agent Officer role through CAO Partners. Australia's specialist AI executive recruitment agency.">
+  <link rel="canonical" href="https://caopartners.com.au/apply">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18020152935"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-18020152935');
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C96D;
+      --black: #0A0A0A;
+      --dark: #111111;
+      --mid: #1A1A1A;
+      --border: rgba(201,168,76,0.2);
+      --text: #E8E8E8;
+      --muted: #888888;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--black);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      height: 32px;
+      width: auto;
+    }
+
+    .nav-back {
+      color: var(--gold);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-back:hover { color: var(--gold-light); }
+
+    /* HERO */
+    .hero {
+      padding: 120px 2rem 64px;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .hero-label {
+      display: inline-block;
+      background: rgba(201,168,76,0.1);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 span { color: var(--gold); }
+
+    .hero p {
+      font-size: 1.125rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* FORM */
+    .form-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 2rem 80px;
+    }
+
+    .form-section {
+      background: var(--mid);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .field-group.full { grid-template-columns: 1fr; }
+
+    @media (max-width: 600px) {
+      .field-group { grid-template-columns: 1fr; }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-top: -0.25rem;
+    }
+
+    input, textarea, select {
+      background: var(--dark);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9375rem;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #444;
+    }
+
+    textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+    textarea.tall { min-height: 140px; }
+
+    select option { background: var(--dark); }
+
+    /* Submit section */
+    .submit-section {
+      text-align: center;
+      padding-top: 1rem;
+    }
+
+    .submit-note {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .btn-submit {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--black);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 1rem 3rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-submit:hover {
+      background: var(--gold-light);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active { transform: translateY(0); }
+
+    /* Progress indicator */
+    .progress {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .progress-step {
+      width: 32px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+      transition: background 0.3s;
+    }
+
+    .progress-step.active { background: var(--gold); }
+
+    /* Disclaimer */
+    .disclaimer {
+      font-size: 0.75rem;
+      color: #555;
+      text-align: center;
+      margin-top: 1.5rem;
+      line-height: 1.6;
+    }
+
+    /* Honeypot */
+    .bot-field { display: none; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">
+      <img src="/logo.svg" alt="CAO Partners">
+    </a>
+    <a href="/" class="nav-back">← Back to site</a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-label">Candidate Application</div>
+    <h1>Apply as a <span>Chief Agent Officer</span></h1>
+    <p>This application takes around 20 minutes. We read every response. Be specific — concrete examples of what you've built and shipped carry more weight than anything else.</p>
+  </section>
+
+  <div class="form-container">
+
+    <form name="cao-application" method="POST" netlify netlify-honeypot="bot-field" action="/application-submitted">
+      <input type="hidden" name="form-type" value="candidate-application">
+      <p class="bot-field"><label>Skip this: <input name="bot-field"></label></p>
+
+      <!-- Section 1: Basics -->
+      <div class="form-section">
+        <div class="form-section-title">01 — About You</div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="full-name">Full name *</label>
+            <input type="text" id="full-name" name="full-name" required placeholder="Jane Smith">
+          </div>
+          <div class="field">
+            <label for="email">Email address *</label>
+            <input type="email" id="email" name="email" required placeholder="jane@example.com">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <label for="linkedin">LinkedIn profile URL *</label>
+            <input type="url" id="linkedin" name="linkedin" required placeholder="https://linkedin.com/in/...">
+          </div>
+          <div class="field">
+            <label for="location">Location (City, State) *</label>
+            <input type="text" id="location" name="location" required placeholder="Sydney, NSW">
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="current-role">Current or most recent role *</label>
+            <input type="text" id="current-role" name="current-role" required placeholder="Head of AI, Acme Corp">
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="industry">Industries you've worked in</label>
+            <input type="text" id="industry" name="industry" placeholder="e.g. Retail, Financial Services, SaaS, Consulting">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Technical Depth -->
+      <div class="form-section">
+        <div class="form-section-title">02 — Technical Depth</div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q1-frameworks">What AI agent frameworks and tools have you deployed in production? *</label>
+            <p class="field-hint">Name the frameworks specifically. Describe what you built with each and what environment it ran in. We are looking for production deployment, not experimentation.</p>
+            <textarea id="q1-frameworks" name="q1-frameworks" class="tall" required
+              placeholder="e.g. I've deployed production systems using LangChain for orchestration, n8n for automation workflows, and the OpenAI Assistants API. Built a customer support agent handling 2,000 tickets/day with 78% auto-resolution rate. Also deployed a RAG system over a 50k-document knowledge base using Pinecone + OpenAI embeddings..."></textarea>
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q2-built">Describe the most significant AI system you've built end-to-end. *</label>
+            <p class="field-hint">What problem did it solve? Walk through the architecture and deployment. What failed and how did you fix it?</p>
+            <textarea id="q2-built" name="q2-built" class="tall" required
+              placeholder="Walk us through the architecture: what the system does, what triggered the build, the tech stack, any non-trivial challenges you ran into in production, and what you'd do differently now."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Operational Judgment -->
+      <div class="form-section">
+        <div class="form-section-title">03 — Operational Judgment</div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q3-redesign">Describe a business process you redesigned using AI. What changed? *</label>
+            <p class="field-hint">Not just automated — redesigned. What did the process look like before? What changed structurally? What was the measurable outcome?</p>
+            <textarea id="q3-redesign" name="q3-redesign" class="tall" required
+              placeholder="Before/after is the format we're looking for. What did the process look like, what was the constraint, what did you change, and what was the outcome in measurable terms."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Communication & Action -->
+      <div class="form-section">
+        <div class="form-section-title">04 — Communication & Bias to Action</div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q4-communication">How do you communicate AI work to a CEO or board? *</label>
+            <p class="field-hint">Give a real example if you can. What's your format? How do you manage scepticism or pushback?</p>
+            <textarea id="q4-communication" name="q4-communication" required
+              placeholder="Describe a real situation where you briefed a non-technical executive on an AI initiative. What did you say, how did they respond, and what happened?"></textarea>
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q5-shipping">Describe a time you shipped something significant under time pressure or with incomplete information. *</label>
+            <p class="field-hint">What did you ship, what did version 1 look like, how long did it take, and what did you iterate to in version 2?</p>
+            <textarea id="q5-shipping" name="q5-shipping" required
+              placeholder="Give us a specific timeline. What was the context, what did you decide to ship vs. leave out, and how fast?"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Fit & Governance -->
+      <div class="form-section">
+        <div class="form-section-title">05 — Environment & Governance</div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q6-environment">What working environment do you do your best work in? *</label>
+            <p class="field-hint">Be honest. Autonomy level, management style, structure preference. The CAO role is high-autonomy, low-structure — describe how that fits or doesn't fit with how you work.</p>
+            <textarea id="q6-environment" name="q6-environment" required
+              placeholder="Describe your ideal setup. When do you thrive, and when do you struggle? The CAO role is essentially building a function from scratch with minimal oversight — how does that fit you?"></textarea>
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q7-governance">How do you approach data governance and AI ethics when building systems? *</label>
+            <p class="field-hint">Walk through your process for a new AI deployment that handles customer data. What are your non-negotiable checkpoints?</p>
+            <textarea id="q7-governance" name="q7-governance" required
+              placeholder="Describe your actual process — data classification, consent, access controls, risk review. Give a real example if you can."></textarea>
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="q8-why">Why this role? Why now? *</label>
+            <p class="field-hint">What draws you to the CAO function specifically, and why CAO Partners?</p>
+            <textarea id="q8-why" name="q8-why" required
+              placeholder="Be direct. What makes the CAO role the right move for you at this point in your career?"></textarea>
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="salary">Salary expectations (AUD, base)</label>
+            <input type="text" id="salary" name="salary" placeholder="e.g. $220,000 – $270,000">
+          </div>
+        </div>
+
+        <div class="field-group full">
+          <div class="field">
+            <label for="portfolio">Portfolio, GitHub, or writing links (optional)</label>
+            <p class="field-hint">Anything that demonstrates what you've built. Public repos, articles, side projects, talks.</p>
+            <textarea id="portfolio" name="portfolio" style="min-height:72px;"
+              placeholder="https://github.com/... or https://..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-section">
+        <p class="submit-note">
+          Your application is reviewed by our team within 2 business days.<br>
+          We'll be in touch if we'd like to move to a phone screen.
+        </p>
+        <button type="submit" class="btn-submit">Submit Application</button>
+        <p class="disclaimer">
+          Your information is handled in accordance with Australian Privacy Principles.<br>
+          CAO Partners does not share applications with clients without your explicit consent.
+        </p>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    // Track form submission as conversion
+    document.querySelector('form').addEventListener('submit', function() {
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'conversion', {
+          'send_to': 'AW-18020152935',
+          'event_category': 'Application',
+          'event_label': 'CAO Candidate Application'
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>

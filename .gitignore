@@ -1,0 +1,46 @@
+# Internal / non-website files
+.DS_Store
+.netlify/
+
+# Documents and contracts
+*.docx
+*.pdf
+*.xlsx
+*.zip
+*.pem
+*.json
+
+# Internal folders - not part of the website
+contracts/
+recruitment/
+content/
+n8n/
+guides/
+email-signatures/
+command-centre/
+apps-script/
+crm/
+tmp/
+
+# Internal scripts
+*.py
+cao-scorer-state.json
+netlify-sync-state.json
+
+# Signature images (internal use)
+michael-signature.png
+sig-logo-*.jpg
+email-signature*.html
+email-signature*.png
+email-signature-*.png
+
+# Build artefacts
+brief-a-preview.png
+build_*.py
+*-state.json
+
+# Internal docs
+CAO-Partners-Discovery*
+CAO-Partners-Service-Agreement*
+Reecebros*
+open-operator*

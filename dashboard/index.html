@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAO Partners — Pipeline Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #04050f;
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #04050f;
+    border-bottom: 1px solid rgba(18,105,255,0.2);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-logo { font-size: 18px; font-weight: 700; letter-spacing: 0.04em; color: #fff; }
+  .header-sub { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; }
+  .header-time { font-size: 12px; color: rgba(255,255,255,0.3); }
+  .refresh-btn {
+    background: rgba(18,105,255,0.12);
+    border: 1px solid rgba(18,105,255,0.3);
+    color: #1269ff;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+  }
+  .refresh-btn:hover { background: rgba(18,105,255,0.2); border-color: rgba(18,105,255,0.5); }
+  .refresh-btn.loading { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Layout ── */
+  .main { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+
+  /* ── KPI Grid ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .kpi-card {
+    background: #0a0c1e;
+    border: 1px solid rgba(18,105,255,0.12);
+    border-radius: 10px;
+    padding: 20px 18px;
+    transition: border-color 0.2s;
+  }
+  .kpi-card:hover { border-color: rgba(18,105,255,0.3); }
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 10px;
+  }
+  .kpi-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .kpi-value.blue { color: #1269ff; }
+  .kpi-value.green { color: #22c55e; }
+  .kpi-value.amber { color: #fbbf24; }
+  .kpi-sub { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+  /* ── Two-col layout ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ── Pipeline Bar ── */
+  .pipeline-card {
+    background: #0a0c1e;
+    border: 1px solid rgba(18,105,255,0.12);
+    border-radius: 10px;
+    padding: 24px;
+  }
+  .pipeline-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+    letter-spacing: 0.02em;
+  }
+  .pipeline-stage {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .pipeline-stage:last-child { border-bottom: none; }
+  .stage-label { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .stage-bar-wrap { flex: 1; margin: 0 16px; height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+  .stage-bar { height: 100%; border-radius: 2px; background: #1269ff; transition: width 0.6s ease; }
+  .stage-bar.green { background: #22c55e; }
+  .stage-bar.amber { background: #fbbf24; }
+  .stage-count { font-size: 13px; font-weight: 600; color: #fff; min-width: 28px; text-align: right; }
+
+  /* ── Scores Table ── */
+  .scores-card {
+    background: #0a0c1e;
+    border: 1px solid rgba(18,105,255,0.12);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+  .scores-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  .score-row {
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-name { font-size: 13px; color: #fff; font-weight: 500; }
+  .score-excerpt { font-size: 11px; color: rgba(255,255,255,0.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tier-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .tier-enterprise { background: rgba(18,105,255,0.2); color: #1269ff; border: 1px solid rgba(18,105,255,0.3); }
+  .tier-mid-market { background: rgba(14,80,180,0.2); color: #5b9bff; border: 1px solid rgba(14,80,180,0.3); }
+  .tier-smb { background: rgba(10,55,120,0.3); color: #7eb3ff; border: 1px solid rgba(10,55,120,0.4); }
+  .tier-borderline { background: rgba(8,30,70,0.4); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); }
+  .tier-disqualified { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+
+  /* ── Loading / Error ── */
+  .loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: rgba(255,255,255,0.3);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  .error-bar {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: #ef4444;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    margin-bottom: 24px;
+    display: none;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 24px 40px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.18);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Top accent bar ── */
+  .accent-bar { height: 3px; background: linear-gradient(90deg, #1269ff 0%, rgba(18,105,255,0.2) 100%); }
+</style>
+</head>
+<body>
+
+<div class="accent-bar"></div>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="header-logo">CAO Partners</div>
+      <div class="header-sub">Pipeline Dashboard</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span class="header-time" id="last-updated">Loading…</span>
+    <button class="refresh-btn" onclick="loadDashboard()" id="refresh-btn">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="error-bar" id="error-bar"></div>
+
+  <!-- Hire-Side KPIs -->
+  <div class="section-title">Hire Side — Sales Leads</div>
+  <div class="kpi-grid" id="sl-kpis">
+    <div class="loading-state">Loading…</div>
+  </div>
+
+  <!-- Recruit-Side KPIs -->
+  <div class="section-title">Talent Side — Potential Recruits</div>
+  <div class="kpi-grid" id="pr-kpis">
+    <div class="loading-state">Loading…</div>
+  </div>
+
+  <!-- Pipeline breakdown -->
+  <div class="two-col">
+    <div class="pipeline-card">
+      <h3>Sales Pipeline Stages</h3>
+      <div id="sl-pipeline"><div class="loading-state" style="min-height:100px">Loading…</div></div>
+    </div>
+    <div class="pipeline-card">
+      <h3>Recruit Pipeline Stages</h3>
+      <div id="pr-pipeline"><div class="loading-state" style="min-height:100px">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- Recent candidate scores -->
+  <div class="section-title">Recent Candidate Scores</div>
+  <div class="scores-card">
+    <div id="scores-table"><div class="loading-state">Loading…</div></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  CAO Partners — Internal Use Only · Data sourced live from Google Sheets
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const SHEET_ID = '1KXbac_zHAXRC78ZyC_lNNhveC_HvVYHHvIPaKr2E3Zg';
+const API_KEY  = 'AIzaSyC_74RTTEIRJOvqSp4dUQxISUznaCeKHhI';
+const BASE     = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values`;
+
+// ── Fetch helper ─────────────────────────────────────────────────────────────
+async function fetchRange(range) {
+  const url = `${BASE}/${encodeURIComponent(range)}?key=${API_KEY}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Sheets API error ${r.status} for ${range}`);
+  const d = await r.json();
+  return d.values || [];
+}
+
+// ── Render helpers ───────────────────────────────────────────────────────────
+function kpiCard(label, value, cls = '', sub = '') {
+  return `<div class="kpi-card">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value ${cls}">${value}</div>
+    ${sub ? `<div class="kpi-sub">${sub}</div>` : ''}
+  </div>`;
+}
+
+function pipelineBar(label, count, total, cls = '') {
+  const pct = total ? Math.round((count / total) * 100) : 0;
+  return `<div class="pipeline-stage">
+    <span class="stage-label">${label}</span>
+    <div class="stage-bar-wrap"><div class="stage-bar ${cls}" style="width:${pct}%"></div></div>
+    <span class="stage-count">${count}</span>
+  </div>`;
+}
+
+function tierClass(tier) {
+  if (!tier) return '';
+  const t = tier.toLowerCase();
+  if (t.includes('enterprise')) return 'tier-enterprise';
+  if (t.includes('mid')) return 'tier-mid-market';
+  if (t.includes('smb')) return 'tier-smb';
+  if (t.includes('borderline')) return 'tier-borderline';
+  if (t.includes('disqualified') || t.includes('rejected')) return 'tier-disqualified';
+  return '';
+}
+
+function extractTier(scoreStr) {
+  if (!scoreStr) return '';
+  const m = scoreStr.match(/\|\s*([^|]+?)\s*\|/);
+  return m ? m[1].trim() : '';
+}
+
+// ── Main load ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('loading');
+  btn.textContent = '↻ Loading…';
+  document.getElementById('error-bar').style.display = 'none';
+
+  try {
+    const [slRows, prRows] = await Promise.all([
+      fetchRange("'Sales Leads'!A3:P300"),
+      fetchRange("'Potential Recruits'!A3:T300"),
+    ]);
+
+    // ── Sales Leads ─────────────────────────────────────────────────────────
+    const sl = slRows.filter(r => r[0]);
+    const slTotal    = sl.length;
+    const slEmailed  = sl.filter(r => ['emailed','contacted'].includes((r[7]||'').toLowerCase())).length;
+    const slNotYet   = sl.filter(r => !r[7] || r[7].trim() === 'Not Yet').length;
+    const slDB       = sl.filter(r => (r[8]||'').trim() === 'Booked').length;
+    const slDC       = sl.filter(r => (r[9]||'').trim() === 'Completed').length;
+    const slFollowUp = sl.filter(r => (r[6]||'').trim() === 'Follow Up').length;
+    const slInvoice  = sl.filter(r => (r[6]||'').trim() === 'Invoice Sent').length;
+    const slPlaced   = sl.filter(r => (r[6]||'').trim() === 'Placed').length;
+
+    document.getElementById('sl-kpis').innerHTML =
+      kpiCard('Total Leads', slTotal) +
+      kpiCard('Outreach Sent', slEmailed, 'blue') +
+      kpiCard('Pending Outreach', slNotYet, slNotYet > 0 ? 'amber' : '') +
+      kpiCard('Discovery Booked', slDB, 'blue') +
+      kpiCard('Discovery Done', slDC, 'blue') +
+      kpiCard('Follow Up', slFollowUp) +
+      kpiCard('Invoice Sent', slInvoice, 'amber') +
+      kpiCard('Placed', slPlaced, 'green');
+
+    document.getElementById('sl-pipeline').innerHTML =
+      pipelineBar('Total Leads', slTotal, slTotal) +
+      pipelineBar('Outreach Sent', slEmailed, slTotal, '') +
+      pipelineBar('Discovery Booked', slDB, slTotal) +
+      pipelineBar('Discovery Complete', slDC, slTotal) +
+      pipelineBar('Follow Up', slFollowUp, slTotal) +
+      pipelineBar('Invoice Sent', slInvoice, slTotal, 'amber') +
+      pipelineBar('Placed', slPlaced, slTotal, 'green');
+
+    // ── Potential Recruits ───────────────────────────────────────────────────
+    const pr = prRows.filter(r => r[0]);
+    const prTotal       = pr.length;
+    const prEmailed     = pr.filter(r => ['emailed','booked'].includes((r[11]||'').toLowerCase())).length;
+    const prScored      = pr.filter(r => r[13] && r[13].trim()).length;
+    const prShortlisted = pr.filter(r => (r[14]||'').trim() === 'Shortlisted').length;
+    const prActive      = pr.filter(r => (r[14]||'').trim() === 'Active').length;
+    const prPlaced      = pr.filter(r => (r[14]||'').trim() === 'Placed').length;
+    const prEnterprise  = pr.filter(r => r[13] && r[13].includes('Enterprise')).length;
+    const prMidMarket   = pr.filter(r => r[13] && r[13].includes('Mid-Market')).length;
+    const prSMB         = pr.filter(r => r[13] && r[13].includes('SMB')).length;
+
+    document.getElementById('pr-kpis').innerHTML =
+      kpiCard('Total Candidates', prTotal) +
+      kpiCard('Outreach Sent', prEmailed, 'blue') +
+      kpiCard('Scored', prScored, 'blue') +
+      kpiCard('Shortlisted', prShortlisted, 'blue') +
+      kpiCard('Active', prActive) +
+      kpiCard('Enterprise Tier', prEnterprise, 'blue') +
+      kpiCard('Mid-Market Tier', prMidMarket) +
+      kpiCard('SMB Tier', prSMB) +
+      kpiCard('Placed', prPlaced, 'green');
+
+    document.getElementById('pr-pipeline').innerHTML =
+      pipelineBar('Total Candidates', prTotal, prTotal) +
+      pipelineBar('Outreach Sent', prEmailed, prTotal) +
+      pipelineBar('Scored', prScored, prTotal) +
+      pipelineBar('Shortlisted', prShortlisted, prTotal) +
+      pipelineBar('Active', prActive, prTotal) +
+      pipelineBar('Placed', prPlaced, prTotal, 'green');
+
+    // ── Recent Scores ────────────────────────────────────────────────────────
+    const scored = pr
+      .filter(r => r[13] && r[13].trim() && r[1])
+      .slice(-20)
+      .reverse();
+
+    if (scored.length === 0) {
+      document.getElementById('scores-table').innerHTML = '<div class="loading-state" style="min-height:80px">No scores yet</div>';
+    } else {
+      document.getElementById('scores-table').innerHTML = scored.map(r => {
+        const tier = extractTier(r[13]);
+        const excerpt = (r[13] || '').replace(/\|[^|]*\|/, '').trim().substring(0, 100);
+        return `<div class="score-row">
+          <span class="score-name">${r[1] || '—'}</span>
+          <span class="score-excerpt">${excerpt}</span>
+          <span class="tier-badge ${tierClass(tier)}">${tier || '—'}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Timestamp ────────────────────────────────────────────────────────────
+    const now = new Date();
+    document.getElementById('last-updated').textContent =
+      `Updated ${now.toLocaleTimeString('en-AU', {hour:'2-digit', minute:'2-digit'})}`;
+
+  } catch (err) {
+    const bar = document.getElementById('error-bar');
+    bar.style.display = 'block';
+    bar.textContent = `Error loading data: ${err.message}. Check API key or network.`;
+    console.error(err);
+  }
+
+  btn.classList.remove('loading');
+  btn.textContent = '↻ Refresh';
+}
+
+// Load on page open, auto-refresh every 5 minutes
+loadDashboard();
+setInterval(loadDashboard, 5 * 60 * 1000);
+</script>
+</body>
+</html>
