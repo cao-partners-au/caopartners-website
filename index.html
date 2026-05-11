@@ -1316,14 +1316,14 @@ function gtag_report_conversion(url) {
 
   <!-- NETLIFY FORM DETECTION — hidden, required for Netlify to register forms at build time -->
   <div style="display:none;">
-    <form name="enquire" netlify netlify-honeypot="bot-field">
+    <form method='post' name='enquire'>
       <input type="hidden" name="form-name" value="enquire" />
       <input name="bot-field" />
       <input name="first_name" /><input name="last_name" />
       <input name="email" /><input name="phone" />
       <input name="company" /><select name="company_size"></select>
     </form>
-    <form name="talent" netlify netlify-honeypot="bot-field">
+    <form method='post' name='talent'>
       <input type="hidden" name="form-name" value="talent" />
       <input name="bot-field" />
       <input name="first_name" /><input name="last_name" />
@@ -1668,7 +1668,7 @@ function gtag_report_conversion(url) {
       <h2>Enquire About a CAO</h2>
       <p class="modal-sub">Tell us about your business and we'll be in touch to discuss how a Chief Agent Officer can rebuild your operations.</p>
 
-      <form id="form-enquire" name="enquire" data-netlify="true" netlify-honeypot="bot-field">
+      <form id='form-enquire' method='post' name='enquire'>
         <input type="hidden" name="form-name" value="enquire" />
         <p style="display:none;"><label>Don't fill this out: <input name="bot-field" /></label></p>
         <div class="form-row">
@@ -1725,7 +1725,7 @@ function gtag_report_conversion(url) {
       <h2>Become a Chief Agent Officer</h2>
       <p class="modal-sub">We're placing AI infrastructure architects inside Australia's leading enterprises. Tell us about yourself and we'll assess your fit.</p>
 
-      <form id="form-talent" name="talent" data-netlify="true" netlify-honeypot="bot-field">
+      <form id='form-talent' method='post' name='talent'>
         <input type="hidden" name="form-name" value="talent" />
         <p style="display:none;"><label>Don't fill this out: <input name="bot-field" /></label></p>
         <div class="form-row">

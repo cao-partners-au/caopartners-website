@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <title>Join the Team | Recruiter Applications | CAO Partners</title>
+  <meta name="description" content="CAO Partners is looking for elite, AI-first recruiters to help place Chief Agent Officers into Australia's top enterprises. Apply now." />
+  <link rel="canonical" href="https://www.caopartners.com.au/join-our-team" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.caopartners.com.au/join-our-team" />
+  <meta property="og:title" content="Join the Team | CAO Partners — AI-First Recruiters Wanted" />
+  <meta property="og:description" content="We're hiring gun recruiters who are AI-first, understand the language, and can place the best Chief Agent Officers in Australia." />
+  <meta property="og:image" content="https://www.caopartners.com.au/social-cover.png" />
+  <meta name="robots" content="index, follow" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black-deep: #04050f;
+      --black-2: #070812;
+      --black-3: #0c0d1a;
+      --black-4: #111224;
+      --black-5: #16182e;
+      --blue: #1269ff;
+      --blue-dark: #0d50cc;
+      --blue-dim: rgba(18,105,255,0.12);
+      --blue-border: rgba(18,105,255,0.3);
+      --white: #ffffff;
+      --text-muted: rgba(255,255,255,0.52);
+      --text-subtle: rgba(255,255,255,0.28);
+      --border: rgba(255,255,255,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--black-deep);
+      color: var(--white);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(4,5,15,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      height: 36px;
+      width: 36px;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    .nav-logo-text {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+
+    .nav-back {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .nav-back:hover { color: var(--white); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(160deg, #04050f 0%, #070a1e 40%, #06091a 70%, #04050f 100%);
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(18,105,255,0.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      max-width: 860px;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--blue-dim);
+      border: 1px solid var(--blue-border);
+      border-radius: 100px;
+      padding: 7px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--blue);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    h1 {
+      font-size: clamp(42px, 7vw, 76px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      color: var(--white);
+      margin-bottom: 24px;
+    }
+
+    h1 span {
+      color: var(--blue);
+    }
+
+    .hero-sub {
+      font-size: 19px;
+      font-weight: 300;
+      color: var(--text-muted);
+      max-width: 620px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--blue);
+      color: var(--white);
+      padding: 16px 36px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+      font-family: 'Jost', sans-serif;
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(18,105,255,0.3);
+    }
+
+    /* SCROLL INDICATOR */
+    .scroll-hint {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-subtle);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--blue), transparent);
+      animation: scrollDrop 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scrollDrop {
+      0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
+      50% { opacity: 1; transform: scaleY(1); }
+      100% { opacity: 0; transform: scaleY(1); transform-origin: bottom; }
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 100px 24px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: clamp(32px, 4.5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .section-intro {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--text-muted);
+      max-width: 640px;
+      line-height: 1.7;
+      margin-bottom: 60px;
+    }
+
+    /* WHAT WE DO */
+    .what-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .what-card {
+      background: var(--black-3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .what-card:hover {
+      border-color: var(--blue-border);
+      transform: translateY(-4px);
+    }
+
+    .what-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .what-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .what-card p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* WHO WE WANT */
+    .criteria-section {
+      background: var(--black-2);
+    }
+
+    .criteria-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .criteria-card {
+      background: var(--black-3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: border-color 0.2s;
+    }
+
+    .criteria-card:hover {
+      border-color: var(--blue-border);
+    }
+
+    .criteria-num {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      background: var(--blue-dim);
+      border: 1px solid var(--blue-border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .criteria-text h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .criteria-text p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* LOOM SECTION */
+    .loom-section {
+      background: var(--black-deep);
+    }
+
+    .loom-box {
+      background: var(--black-3);
+      border: 1px solid var(--blue-border);
+      border-radius: 24px;
+      padding: 56px;
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loom-box::before {
+      content: '';
+      position: absolute;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 300px;
+      background: radial-gradient(circle, rgba(18,105,255,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .loom-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .loom-box h3 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .loom-box p {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      line-height: 1.65;
+    }
+
+    .loom-checklist {
+      list-style: none;
+      text-align: left;
+      max-width: 500px;
+      margin: 0 auto 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .loom-checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .check {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      background: var(--blue-dim);
+      border: 1px solid var(--blue-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--blue);
+      margin-top: 2px;
+    }
+
+    .loom-note {
+      font-size: 13px;
+      color: var(--text-subtle);
+      margin-top: 16px;
+    }
+
+    /* APPLICATION FORM */
+    .form-section {
+      background: var(--black-2);
+    }
+
+    .form-wrap {
+      max-width: 740px;
+      margin: 0 auto;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    label span.req {
+      color: var(--blue);
+      margin-left: 2px;
+    }
+
+    input, textarea, select {
+      background: var(--black-3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'Jost', sans-serif;
+      font-size: 15px;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: var(--text-subtle);
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(18,105,255,0.12);
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(255,255,255,0.3)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 44px;
+      cursor: pointer;
+    }
+
+    select option {
+      background: var(--black-3);
+      color: var(--white);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .scale-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-subtle);
+      padding: 0 4px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: auto;
+      appearance: auto;
+      padding: 0;
+      height: auto;
+      cursor: pointer;
+      accent-color: var(--blue);
+    }
+
+    .scale-value {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .form-divider {
+      grid-column: 1 / -1;
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    .form-section-label {
+      grid-column: 1 / -1;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--blue);
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--blue-border);
+    }
+
+    .submit-wrap {
+      margin-top: 36px;
+      text-align: center;
+    }
+
+    .submit-wrap button {
+      width: 100%;
+      max-width: 340px;
+      padding: 18px 40px;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .submit-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-subtle);
+    }
+
+    /* SUCCESS STATE */
+    #form-success {
+      display: none;
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    #form-success h3 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    #form-success p {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* WHY JOIN */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .why-card {
+      background: var(--black-3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .why-card:hover {
+      border-color: var(--blue-border);
+      transform: translateY(-4px);
+    }
+
+    .why-card .num {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--blue);
+      opacity: 0.3;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .why-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .why-card p {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 48px 24px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 14px;
+      color: var(--text-subtle);
+    }
+
+    footer a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* MOBILE NAV */
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .hero { padding: 100px 20px 80px; }
+      .loom-box { padding: 36px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Netlify form detection (hidden) -->
+<form name="recruiter-application" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="recruiter-application" />
+  <input type="text" name="first_name" />
+  <input type="text" name="last_name" />
+  <input type="email" name="email" />
+  <input type="tel" name="phone" />
+  <input type="text" name="location" />
+  <input type="url" name="linkedin" />
+  <input type="url" name="loom_url" />
+  <select name="years_recruitment"></select>
+  <select name="placement_type"></select>
+  <input type="text" name="sectors" />
+  <textarea name="biggest_placement"></textarea>
+  <input type="text" name="ai_tools" />
+  <textarea name="ai_implementation"></textarea>
+  <input type="range" name="ai_score" />
+  <textarea name="why_cao"></textarea>
+  <textarea name="differentiator"></textarea>
+  <select name="availability"></select>
+  <select name="work_type"></select>
+  <input type="text" name="bot-field" />
+</form>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <img src="/logo-square-black.jpg" alt="CAO Partners" />
+      <span class="nav-logo-text">CAO Partners</span>
+    </a>
+    <a href="/" class="nav-back">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8.5 2.5L4 7L8.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back to site
+    </a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Now Hiring - Recruiters
+      </div>
+      <h1>We're Looking for<br/><span>Gun Recruiters</span></h1>
+      <p class="hero-sub">
+        CAO Partners is scaling fast. We're placing the best AI operators in Australia and we need recruiters who are AI-first, commercially sharp, and ready to move at pace.
+      </p>
+      <a href="#apply" class="btn-primary">
+        Apply Now
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+    <div class="scroll-hint">
+      <div class="scroll-line"></div>
+      Scroll
+    </div>
+  </section>
+
+  <!-- WHAT WE DO -->
+  <section>
+    <div class="container">
+      <div class="section-label">Who We Are</div>
+      <h2>Australia's First<br/>AI Recruitment Firm</h2>
+      <p class="section-intro">
+        We place Chief Agent Officers - dedicated AI operators who rebuild entire business functions from the ground up. Our clients are ASX-listed enterprises, fast-growth mid-market companies, and category leaders who understand the window to move first is closing.
+      </p>
+      <div class="what-grid">
+        <div class="what-card">
+          <div class="what-icon">🎯</div>
+          <h3>Permanent Placement</h3>
+          <p>We're an introduction agency. We source, screen, and match candidates - our clients hire them directly. Clean, fast, no middleman friction once placed.</p>
+        </div>
+        <div class="what-card">
+          <div class="what-icon">🤖</div>
+          <h3>A New Category of Hire</h3>
+          <p>The Chief Agent Officer role didn't exist two years ago. We're defining the market, setting the standard, and placing the first wave of operators into Australian enterprise.</p>
+        </div>
+        <div class="what-card">
+          <div class="what-icon">⚡</div>
+          <h3>Serious Deal Flow</h3>
+          <p>We have more leads than we can handle. Qualified enterprise clients. Hundreds of candidates on the shortlist. We need recruiters who can close.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO WE WANT -->
+  <section class="criteria-section">
+    <div class="container">
+      <div class="section-label">The Brief</div>
+      <h2>What We're Looking For</h2>
+      <p class="section-intro">
+        This is not a role for someone who is "curious about AI." You need to live it. Understand it. Use it every day. Our candidates are technical operators - you need to be able to talk to them at their level.
+      </p>
+      <div class="criteria-grid">
+        <div class="criteria-card">
+          <div class="criteria-num">01</div>
+          <div class="criteria-text">
+            <h4>AI-First Mindset</h4>
+            <p>You use AI tools daily - LLMs, automation, agents, workflows. You understand what they do and why they matter.</p>
+          </div>
+        </div>
+        <div class="criteria-card">
+          <div class="criteria-num">02</div>
+          <div class="criteria-text">
+            <h4>Recruitment Track Record</h4>
+            <p>You have a history of placing candidates and closing deals. Permanent placement experience is strongly preferred.</p>
+          </div>
+        </div>
+        <div class="criteria-card">
+          <div class="criteria-num">03</div>
+          <div class="criteria-text">
+            <h4>Sales Ability</h4>
+            <p>You can run a discovery call, handle objections, and convert. This is a commercial role - not order-taking.</p>
+          </div>
+        </div>
+        <div class="criteria-card">
+          <div class="criteria-num">04</div>
+          <div class="criteria-text">
+            <h4>Tech Fluency</h4>
+            <p>You know the difference between an agent and an automation. You can explain AI tooling to a C-suite exec who hasn't touched it yet.</p>
+          </div>
+        </div>
+        <div class="criteria-card">
+          <div class="criteria-num">05</div>
+          <div class="criteria-text">
+            <h4>Self-Motivated</h4>
+            <p>We move fast. You need to keep up without hand-holding. If you thrive in structure, this isn't the right fit.</p>
+          </div>
+        </div>
+        <div class="criteria-card">
+          <div class="criteria-num">06</div>
+          <div class="criteria-text">
+            <h4>Builder Mentality</h4>
+            <p>This firm is being built in real time. You're not joining a bureaucracy - you're helping shape how we operate at scale.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY JOIN -->
+  <section>
+    <div class="container">
+      <div class="section-label">Why CAO Partners</div>
+      <h2>Why This Role<br/>Is Worth Your Time</h2>
+      <p class="section-intro">
+        You're not walking into a slow-moving agency. This is ground floor at a category-defining firm, backed by names who have built real businesses.
+      </p>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="num">01</div>
+          <h3>Category Advantage</h3>
+          <p>We are the only firm in Australia focused exclusively on CAO placement. Every deal you work is in a market with no established competition.</p>
+        </div>
+        <div class="why-card">
+          <div class="num">02</div>
+          <h3>Deal Flow Ready</h3>
+          <p>You're not building a cold desk from scratch. We have active leads, a pipeline, and candidates ready to move. Your job is to close.</p>
+        </div>
+        <div class="why-card">
+          <div class="num">03</div>
+          <h3>Backed by the Right People</h3>
+          <p>Founded by Emil Juresic (NGU Group Chairman) and Simon Beard (Culture Kings founder, AFR Rich List). You work with the decision makers directly.</p>
+        </div>
+        <div class="why-card">
+          <div class="num">04</div>
+          <h3>AI-Powered Operations</h3>
+          <p>We eat our own cooking. Our internal stack is fully AI-driven - scoring, matching, comms, and workflows. You'll work smarter than anywhere else you've been.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOOM INSTRUCTIONS -->
+  <section class="loom-section">
+    <div class="container">
+      <div class="loom-box">
+        <div class="loom-icon">🎥</div>
+        <h3>Your 5-Minute Loom</h3>
+        <p>
+          Before you fill out the form, record a 5-minute Loom video. This is how we assess you. We review every application - a great Loom jumps the queue.
+        </p>
+        <ul class="loom-checklist">
+          <li>
+            <span class="check">&#10003;</span>
+            <span><strong>Your background</strong> - Who are you? Where have you been? What have you built?</span>
+          </li>
+          <li>
+            <span class="check">&#10003;</span>
+            <span><strong>Your sales process</strong> - How do you run a call? How do you close? What does your pipeline look like?</span>
+          </li>
+          <li>
+            <span class="check">&#10003;</span>
+            <span><strong>Your AI stack</strong> - What tools do you use? How have you implemented AI into your workflow? Be specific.</span>
+          </li>
+          <li>
+            <span class="check">&#10003;</span>
+            <span><strong>Recruitment and placement</strong> - How do you source? How do you screen? What's your hit rate?</span>
+          </li>
+          <li>
+            <span class="check">&#10003;</span>
+            <span><strong>Your experience</strong> - Relevant wins. Real numbers. Industries. Deal sizes.</span>
+          </li>
+          <li>
+            <span class="check">&#10003;</span>
+            <span><strong>Why this role</strong> - Not a generic answer. Tell us exactly why CAO Partners makes sense for you, right now.</span>
+          </li>
+          <li>
+            <span class="check">&#10003;</span>
+            <span><strong>Anything else</strong> - What makes you different? What would you bring that nobody else would?</span>
+          </li>
+        </ul>
+        <a href="https://www.loom.com" target="_blank" rel="noopener" class="btn-primary">
+          Record on Loom
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 2h10v10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </a>
+        <p class="loom-note">Record your Loom first, then paste the link in the application below.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLICATION FORM -->
+  <section class="form-section" id="apply">
+    <div class="container">
+      <div class="form-wrap">
+        <div class="section-label">Apply Now</div>
+        <h2>Send Your Application</h2>
+        <p class="section-intro">
+          Fill this out after you've recorded your Loom. We review every application personally. Expect a response within 3 business days if you're shortlisted.
+        </p>
+
+        <form id="application-form" name="recruiter-application" method="POST" netlify-honeypot="bot-field" data-netlify="true" novalidate>
+          <div class="form-grid">
+
+            <input type="hidden" name="form-name" value="recruiter-application" />
+          <p style="display:none;"><label>Don't fill this out: <input name="bot-field" /></label></p>
+
+          <div class="form-section-label">Personal Details</div>
+
+            <div class="form-group">
+              <label for="first_name">First Name <span class="req">*</span></label>
+              <input type="text" id="first_name" name="first_name" placeholder="Jane" required />
+            </div>
+
+            <div class="form-group">
+              <label for="last_name">Last Name <span class="req">*</span></label>
+              <input type="text" id="last_name" name="last_name" placeholder="Smith" required />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address <span class="req">*</span></label>
+              <input type="email" id="email" name="email" placeholder="jane@example.com" required />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Mobile Number <span class="req">*</span></label>
+              <input type="tel" id="phone" name="phone" placeholder="04XX XXX XXX" required />
+            </div>
+
+            <div class="form-group">
+              <label for="location">City / Location <span class="req">*</span></label>
+              <input type="text" id="location" name="location" placeholder="Brisbane, QLD" required />
+            </div>
+
+            <div class="form-group">
+              <label for="linkedin">LinkedIn URL</label>
+              <input type="url" id="linkedin" name="linkedin" placeholder="linkedin.com/in/janesmith" />
+            </div>
+
+            <hr class="form-divider" />
+            <div class="form-section-label">Your Loom</div>
+
+            <div class="form-group full">
+              <label for="loom_url">Loom Video Link <span class="req">*</span></label>
+              <input type="url" id="loom_url" name="loom_url" placeholder="https://www.loom.com/share/..." required />
+            </div>
+
+            <hr class="form-divider" />
+            <div class="form-section-label">Recruitment Background</div>
+
+            <div class="form-group">
+              <label for="years_recruitment">Years in Recruitment <span class="req">*</span></label>
+              <select id="years_recruitment" name="years_recruitment" required>
+                <option value="" disabled selected>Select range</option>
+                <option value="0-1">Less than 1 year</option>
+                <option value="1-2">1-2 years</option>
+                <option value="2-5">2-5 years</option>
+                <option value="5-10">5-10 years</option>
+                <option value="10+">10+ years</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="placement_type">Placement Experience <span class="req">*</span></label>
+              <select id="placement_type" name="placement_type" required>
+                <option value="" disabled selected>Select type</option>
+                <option value="permanent">Permanent / Direct Hire</option>
+                <option value="contract">Contract / Temp</option>
+                <option value="both">Both</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group full">
+              <label for="sectors">Industries / Sectors You've Recruited In <span class="req">*</span></label>
+              <input type="text" id="sectors" name="sectors" placeholder="e.g. Tech, Professional Services, Finance, Sales" required />
+            </div>
+
+            <div class="form-group full">
+              <label for="biggest_placement">Describe your biggest or most complex placement to date</label>
+              <textarea id="biggest_placement" name="biggest_placement" placeholder="Role, client size, how long it took, what made it hard..."></textarea>
+            </div>
+
+            <hr class="form-divider" />
+            <div class="form-section-label">AI Fluency</div>
+
+            <div class="form-group full">
+              <label for="ai_tools">What AI tools do you use regularly? <span class="req">*</span></label>
+              <input type="text" id="ai_tools" name="ai_tools" placeholder="e.g. ChatGPT, Claude, Notion AI, Zapier, Make, n8n..." required />
+            </div>
+
+            <div class="form-group full">
+              <label for="ai_implementation">How have you implemented AI into your workflow or a client/employer's workflow? <span class="req">*</span></label>
+              <textarea id="ai_implementation" name="ai_implementation" placeholder="Be specific. What problem did you solve? What was the before/after?" required></textarea>
+            </div>
+
+            <div class="form-group full">
+              <label>How would you rate your overall AI fluency? <span class="req">*</span></label>
+              <div class="scale-group">
+                <div class="scale-value" id="ai_score_display">5</div>
+                <input type="range" id="ai_score" name="ai_score" min="1" max="10" value="5" oninput="document.getElementById('ai_score_display').textContent = this.value" />
+                <div class="scale-labels">
+                  <span>1 - Curious but new</span>
+                  <span>10 - Build agents myself</span>
+                </div>
+              </div>
+            </div>
+
+            <hr class="form-divider" />
+            <div class="form-section-label">Fit & Motivation</div>
+
+            <div class="form-group full">
+              <label for="why_cao">Why CAO Partners, and why now? <span class="req">*</span></label>
+              <textarea id="why_cao" name="why_cao" placeholder="Be honest and specific. What drew you here? What do you want to build?" required></textarea>
+            </div>
+
+            <div class="form-group full">
+              <label for="differentiator">What do you bring that nobody else does?</label>
+              <textarea id="differentiator" name="differentiator" placeholder="A specific skill, network, approach, or experience that sets you apart."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="availability">Availability <span class="req">*</span></label>
+              <select id="availability" name="availability" required>
+                <option value="" disabled selected>When can you start?</option>
+                <option value="immediately">Immediately</option>
+                <option value="2-weeks">2 weeks notice</option>
+                <option value="4-weeks">4 weeks notice</option>
+                <option value="other">Other - I'll explain in Loom</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="work_type">Preferred Arrangement <span class="req">*</span></label>
+              <select id="work_type" name="work_type" required>
+                <option value="" disabled selected>Select preference</option>
+                <option value="full-time">Full time</option>
+                <option value="part-time">Part time</option>
+                <option value="contract">Contract / Commission</option>
+                <option value="flexible">Flexible - let's talk</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="submit-wrap">
+            <button type="submit" class="btn-primary">Submit Application</button>
+            <p class="submit-note">We read every application. Shortlisted candidates will hear back within 3 business days.</p>
+          </div>
+        </form>
+
+        <div id="form-success">
+          <div style="font-size:48px;margin-bottom:16px;">✅</div>
+          <h3>Application Received</h3>
+          <p>
+            We'll review your Loom and application personally. If you're shortlisted, you'll hear from us within 3 business days.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>
+      &copy; 2026 CAO Partners. All rights reserved.
+      <br />
+      <a href="/">caopartners.com.au</a> &mdash; Australia's AI Recruitment Firm
+    </p>
+  </footer>
+
+  <script>
+    const form = document.getElementById('application-form');
+    const success = document.getElementById('form-success');
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.textContent = 'Submitting...';
+      btn.disabled = true;
+
+      const data = new FormData(form);
+
+      try {
+        const res = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(data).toString()
+        });
+
+        if (res.ok) {
+          form.style.display = 'none';
+          success.style.display = 'block';
+          success.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          alert('Something went wrong. Please try again or email us directly at michael@caopartners.com.au');
+          btn.textContent = 'Submit Application';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert('Connection error. Please check your internet and try again.');
+        btn.textContent = 'Submit Application';
+        btn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
