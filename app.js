@@ -588,3 +588,44 @@
   })();
 
 })();
+
+// --- mobile nav hamburger ---
+(function() {
+  const hamburger = document.querySelector('.nav-hamburger');
+  const mobileNav = document.querySelector('.mobile-nav');
+  if (!hamburger || !mobileNav) return;
+
+  function openNav() {
+    hamburger.classList.add('open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    mobileNav.classList.add('open');
+    mobileNav.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNav() {
+    hamburger.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    mobileNav.classList.remove('open');
+    mobileNav.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.contains('open') ? closeNav() : openNav();
+  });
+
+  // Close on nav link tap
+  mobileNav.querySelectorAll('.mobile-nav-link').forEach(a => {
+    a.addEventListener('click', closeNav);
+  });
+
+  // Close when a modal opens
+  mobileNav.querySelectorAll('[data-open]').forEach(btn => {
+    btn.addEventListener('click', closeNav);
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeNav();
+  });
+})();

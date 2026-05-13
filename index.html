@@ -69,8 +69,26 @@ fbq('track', 'PageView');
       <button class="btn btn-ghost" data-open="modal-cao">Become a CAO</button>
       <button class="btn btn-primary" data-open="modal-hire">Hire a CAO</button>
     </div>
+    <button class="nav-hamburger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
+
+<!-- Mobile nav overlay -->
+<div class="mobile-nav" aria-hidden="true">
+  <nav>
+    <a href="#role" class="mobile-nav-link">The Role</a>
+    <a href="#tiers" class="mobile-nav-link">Tiers</a>
+    <a href="#founders" class="mobile-nav-link">Founders</a>
+    <a href="#vetting" class="mobile-nav-link">Vetting</a>
+    <a href="#insights" class="mobile-nav-link">Insights</a>
+  </nav>
+  <div class="mobile-nav-cta">
+    <button class="btn btn-primary" data-open="modal-hire">Hire a CAO</button>
+    <button class="btn btn-ghost" data-open="modal-cao">Become a CAO</button>
+  </div>
+</div>
 
 <!-- ============================================================
      2. HERO
