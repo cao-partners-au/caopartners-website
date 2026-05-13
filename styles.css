@@ -1687,7 +1687,7 @@ section { position: relative; }
 
 /* ============================================================
    MOBILE LAYOUT FIXES — max-width: 600px
-   Desktop completely untouched
+   Desktop completely untouched. No content removed.
    ============================================================ */
 @media (max-width: 600px) {
 
@@ -1695,67 +1695,108 @@ section { position: relative; }
   .hero {
     padding: 90px 0 48px;
     min-height: auto;
-    text-align: center;
   }
+  /* Force the inner container to be full width and centred */
   .hero .container.inner {
     padding-inline: 20px;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
+  /* Eyebrow text */
   .hero-eyebrow-mono {
     font-size: 10px;
     letter-spacing: 0.12em;
     gap: 8px;
+    justify-content: center;
   }
+  /* H1 — words must wrap and centre */
   .hero-h1 {
-    font-size: clamp(28px, 8vw, 40px);
     margin: 20px 0 20px;
     max-width: 100%;
+    text-align: center;
+  }
+  .hero-h1 .line {
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
   }
   .hero-h1 .line.lead {
-    font-size: clamp(30px, 9vw, 42px);
+    font-size: clamp(28px, 9vw, 40px);
     margin-bottom: 14px;
   }
   .hero-h1 .line.sub {
-    font-size: clamp(16px, 4.5vw, 22px);
+    font-size: clamp(15px, 4.2vw, 20px);
     line-height: 1.5;
   }
+  /* Sub paragraph */
   .hero .sub {
     font-size: 15px;
     margin: 0 auto 28px;
-    padding-inline: 4px;
+    text-align: center;
   }
+  /* CTAs — side by side but smaller, centred */
   .hero .cta-row {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
   }
   .hero .cta-row .btn {
-    width: 100%;
-    justify-content: center;
+    flex: 0 1 auto;
+    padding: 12px 18px;
+    font-size: 13px;
+    white-space: nowrap;
   }
 
-  /* Hide dashboard panel on mobile - too complex to render well */
-  .hero-dash { display: none; }
+  /* Hero dashboard — scale down to fit, don't hide */
+  .hero-dash {
+    margin: 36px auto 0;
+    max-width: 100%;
+    overflow: hidden;
+    perspective: none;
+  }
+  .hd-panel {
+    transform: none;
+    grid-template-columns: 1fr;
+    font-size: 11px;
+  }
+  .hd-side { display: none; }
+  .hd-main { padding: 14px 16px 16px; }
+  .hd-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 
-  /* Hero marquee - prevent overflow */
-  .hero-marquee { margin-top: 36px; }
+  /* Hero marquee */
+  .hero-marquee { margin-top: 32px; }
 
   /* --- ROLE SECTION --- */
   .role-grid {
     grid-template-columns: 1fr !important;
     gap: 32px;
   }
-  .role-visual { display: none; }  /* hide the stats panel - copy reads fine alone */
+  /* Role visual panel — scale down, show it */
+  .role-visual {
+    display: block;
+    overflow: hidden;
+  }
+  .rv-panel { padding: 18px; }
+  .rv-foot {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
   .role-stats {
     grid-template-columns: 1fr 1fr;
   }
 
   /* --- SECTION TYPOGRAPHY --- */
   .section-h2 {
-    font-size: clamp(26px, 7vw, 40px);
+    font-size: clamp(26px, 7vw, 38px);
     max-width: 100%;
   }
-  .section-lead {
-    font-size: 16px;
-  }
+  .section-lead { font-size: 16px; }
 
   /* --- TIERS HEAD --- */
   .tiers-head {
@@ -1770,10 +1811,7 @@ section { position: relative; }
     gap: 20px;
     padding: 32px 20px;
   }
-  .founder-portrait {
-    width: 140px;
-    height: 180px;
-  }
+  .founder-portrait { width: 140px; height: 180px; }
   .founder-name { font-size: 22px; }
   .founder-bio { font-size: 15px; }
   .founder-quote { font-size: 15px; }
