@@ -185,6 +185,19 @@ img, svg { display: block; max-width: 100%; }
   .nav-cta .btn-ghost { display: none; }
 }
 
+/* Both CTA buttons visible in mobile sticky nav */
+@media (max-width: 600px) {
+  .nav-cta .btn-ghost {
+    display: inline-flex;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .nav-cta .btn-primary {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
 /* ============================================================
    HERO
    ============================================================ */
