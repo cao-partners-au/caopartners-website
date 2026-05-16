@@ -723,6 +723,22 @@ fbq('track', 'PageView');
           <textarea id="c-built" name="business_case" required placeholder="Production AI systems you have shipped. Output, scale, business context."></textarea>
         </div>
         <div class="field full">
+          <label for="c-state">State (required)</label>
+          <select id="c-state" name="state" required>
+            <option value="" disabled selected>Select your state</option>
+            <option value="QLD">QLD</option>
+            <option value="NSW">NSW</option>
+            <option value="VIC">VIC</option>
+            <option value="WA">WA</option>
+            <option value="SA">SA</option>
+            <option value="ACT">ACT</option>
+            <option value="TAS">TAS</option>
+            <option value="NT">NT</option>
+          </select>
+
+          <label for="c-bio">Your AI background (optional)</label>
+          <textarea id="c-bio" name="bio" placeholder="e.g. Built an AI agent system at [Company] that automated X, reducing Y by Z..."></textarea>
+
           <label for="c-linkedin">LinkedIn URL</label>
           <input id="c-linkedin" name="linkedin" type="url" placeholder="https://www.linkedin.com/in/..." />
         </div>
