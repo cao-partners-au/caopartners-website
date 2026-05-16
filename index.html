@@ -611,58 +611,57 @@ fbq('track', 'PageView');
     </button>
     <h3 id="modal-hire-title">Hire a Chief Agent Officer</h3>
     <p class="modal-sub">Tell us about your business. We will be in touch within 24 hours.</p>
-    <form id="form-enquire" name="enquire" data-netlify="true" netlify-honeypot="bot-field">
+    <form name="enquire" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
       <input type="hidden" name="form-name" value="enquire" />
-      <p style="display:none;"><label>Don't fill this out: <input name="bot-field" /></label></p>
-      <div class="form-row">
-        <div class="form-group">
-          <label>First Name <span class="required">*</span></label>
-          <input type="text" name="first_name" required placeholder="Jane" />
+      <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
+      <div class="form-grid">
+        <div class="field">
+          <label for="h-first">First name</label>
+          <input id="h-first" name="first_name" type="text" required placeholder="Jane" />
         </div>
-        <div class="form-group">
-          <label>Last Name <span class="required">*</span></label>
-          <input type="text" name="last_name" required placeholder="Smith" />
+        <div class="field">
+          <label for="h-last">Last name</label>
+          <input id="h-last" name="last_name" type="text" required placeholder="Smith" />
+        </div>
+        <div class="field">
+          <label for="h-email">Work email</label>
+          <input id="h-email" name="email" type="email" required placeholder="jane@company.com.au" />
+        </div>
+        <div class="field">
+          <label for="h-phone">Phone</label>
+          <input id="h-phone" name="phone" type="tel" placeholder="+61 4xx xxx xxx" />
+        </div>
+        <div class="field full">
+          <label for="h-company">Company</label>
+          <input id="h-company" name="company" type="text" required placeholder="Acme Corporation" />
+        </div>
+        <div class="field">
+          <label for="h-size">Company size</label>
+          <select id="h-size" name="company_size">
+            <option value="">Select</option>
+            <option>1-10</option>
+            <option>11-50</option>
+            <option>51-200</option>
+            <option>201-500</option>
+            <option>500+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="h-state">State</label>
+          <select id="h-state" name="state" required>
+            <option value="" disabled selected>Select</option>
+            <option value="QLD">QLD</option>
+            <option value="NSW">NSW</option>
+            <option value="VIC">VIC</option>
+            <option value="WA">WA</option>
+            <option value="SA">SA</option>
+            <option value="ACT">ACT</option>
+            <option value="TAS">TAS</option>
+            <option value="NT">NT</option>
+          </select>
         </div>
       </div>
-      <div class="form-group">
-        <label>Business Email <span class="required">*</span></label>
-        <input type="email" name="email" required placeholder="jane@company.com.au" />
-      </div>
-      <div class="form-group">
-        <label>Phone Number <span class="required">*</span></label>
-        <input type="tel" name="phone" required placeholder="+61 4xx xxx xxx" />
-      </div>
-      <div class="form-group">
-        <label>Company Name <span class="required">*</span></label>
-        <input type="text" name="company" required placeholder="Acme Corporation" />
-      </div>
-      <div class="form-group">
-        <label>Company Size</label>
-        <select name="company_size">
-          <option value="">Select...</option>
-          <option>1-10 employees</option>
-          <option>11-50 employees</option>
-          <option>51-200 employees</option>
-          <option>201-500 employees</option>
-          <option>500+ employees</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>State <span class="required">*</span></label>
-        <select name="state" required>
-          <option value="" disabled selected>Select your state</option>
-          <option value="QLD">QLD</option>
-          <option value="NSW">NSW</option>
-          <option value="VIC">VIC</option>
-          <option value="WA">WA</option>
-          <option value="SA">SA</option>
-          <option value="ACT">ACT</option>
-          <option value="TAS">TAS</option>
-          <option value="NT">NT</option>
-        </select>
-      </div>
-      <button type="submit" class="btn btn-primary form-submit">Submit Enquiry</button>
-      <p class="form-note">We'll be in touch within 1 business day.</p>
+      <button class="btn btn-primary" type="submit">Send enquiry</button>
     </form>
   </div>
 </div>
@@ -677,90 +676,89 @@ fbq('track', 'PageView');
     </button>
     <h3 id="modal-cao-title">Become a Chief Agent Officer</h3>
     <p class="modal-sub">If you clear the threshold, our team will be in touch within 48 hours.</p>
-    <form id="form-talent" name="talent" data-netlify="true" netlify-honeypot="bot-field">
+    <form name="talent" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
       <input type="hidden" name="form-name" value="talent" />
-      <p style="display:none;"><label>Don't fill this out: <input name="bot-field" /></label></p>
-      <div class="form-row">
-        <div class="form-group">
-          <label>First Name <span class="required">*</span></label>
-          <input type="text" name="first_name" required placeholder="Alex" />
+      <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
+      <div class="form-grid">
+        <div class="field">
+          <label for="c-first">First name</label>
+          <input id="c-first" name="first_name" type="text" required placeholder="Alex" />
         </div>
-        <div class="form-group">
-          <label>Last Name <span class="required">*</span></label>
-          <input type="text" name="last_name" required placeholder="Chen" />
+        <div class="field">
+          <label for="c-last">Last name</label>
+          <input id="c-last" name="last_name" type="text" required placeholder="Chen" />
+        </div>
+        <div class="field">
+          <label for="c-email">Email</label>
+          <input id="c-email" name="email" type="email" required placeholder="alex@email.com" />
+        </div>
+        <div class="field">
+          <label for="c-phone">Phone</label>
+          <input id="c-phone" name="phone" type="tel" placeholder="+61 4xx xxx xxx" />
+        </div>
+        <div class="field full">
+          <label for="c-title">Current or most recent job title</label>
+          <input id="c-title" name="current_title" type="text" required placeholder="e.g. Solutions Architect, Head of Engineering" />
+        </div>
+        <div class="field">
+          <label for="c-years">Years of experience in tech / AI / operations</label>
+          <select id="c-years" name="years_experience" required>
+            <option value="">Select</option>
+            <option>Less than 1 year</option>
+            <option>1-2 years</option>
+            <option>3-5 years</option>
+            <option>6-10 years</option>
+            <option>10+ years</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="c-state">State</label>
+          <select id="c-state" name="state" required>
+            <option value="" disabled selected>Select</option>
+            <option value="QLD">QLD</option>
+            <option value="NSW">NSW</option>
+            <option value="VIC">VIC</option>
+            <option value="WA">WA</option>
+            <option value="SA">SA</option>
+            <option value="ACT">ACT</option>
+            <option value="TAS">TAS</option>
+            <option value="NT">NT</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="c-ai">Have you built or deployed AI agents or automation workflows?</label>
+          <select id="c-ai" name="ai_experience" required>
+            <option value="">Select</option>
+            <option>Yes - extensively (multiple production deployments)</option>
+            <option>Yes - some (1-2 projects, limited scope)</option>
+            <option>No - but I have strong technical foundations</option>
+            <option>No - I'm newer to AI but learning fast</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="c-avail">Which best describes your current situation?</label>
+          <select id="c-avail" name="availability" required>
+            <option value="">Select</option>
+            <option>Actively looking - available now</option>
+            <option>Open to opportunities - currently employed</option>
+            <option>Recently made redundant</option>
+            <option>Exploring options, not urgent</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="c-built">How would AI agents save a $50M revenue company money?</label>
+          <textarea id="c-built" name="business_case" required placeholder="Walk us through your thinking - which functions, what cost savings, how you'd approach it..."></textarea>
+        </div>
+        <div class="field full">
+          <label for="c-bio">Briefly describe your most relevant experience or project</label>
+          <textarea id="c-bio" name="bio" placeholder="e.g. Built an AI agent system at [Company] that automated X, reducing Y by Z..."></textarea>
+        </div>
+        <div class="field full">
+          <label for="c-linkedin">LinkedIn URL</label>
+          <input id="c-linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/yourprofile" />
         </div>
       </div>
-      <div class="form-group">
-        <label>Email Address <span class="required">*</span></label>
-        <input type="email" name="email" required placeholder="alex@email.com" />
-      </div>
-      <div class="form-group">
-        <label>Phone Number <span class="required">*</span></label>
-        <input type="tel" name="phone" required placeholder="+61 4xx xxx xxx" />
-      </div>
-      <div class="form-group">
-        <label>Current or Most Recent Job Title <span class="required">*</span></label>
-        <input type="text" name="current_title" required placeholder="e.g. Solutions Architect, Head of Engineering" />
-      </div>
-      <div class="form-group">
-        <label>Years of Experience in Tech / AI / Operations <span class="required">*</span></label>
-        <select name="years_experience" required>
-          <option value="">Select...</option>
-          <option>Less than 1 year</option>
-          <option>1-2 years</option>
-          <option>3-5 years</option>
-          <option>6-10 years</option>
-          <option>10+ years</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Have you built or deployed AI agents or automation workflows? <span class="required">*</span></label>
-        <select name="ai_experience" required>
-          <option value="">Select...</option>
-          <option>Yes - extensively (multiple production deployments)</option>
-          <option>Yes - some (1-2 projects, limited scope)</option>
-          <option>No - but I have strong technical foundations</option>
-          <option>No - I'm newer to AI but learning fast</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Which best describes your current situation? <span class="required">*</span></label>
-        <select name="availability" required>
-          <option value="">Select...</option>
-          <option>Actively looking - available now</option>
-          <option>Open to opportunities - currently employed</option>
-          <option>Recently made redundant</option>
-          <option>Exploring options, not urgent</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>State <span class="required">*</span></label>
-        <select name="state" required>
-          <option value="" disabled selected>Select your state</option>
-          <option value="QLD">QLD</option>
-          <option value="NSW">NSW</option>
-          <option value="VIC">VIC</option>
-          <option value="WA">WA</option>
-          <option value="SA">SA</option>
-          <option value="ACT">ACT</option>
-          <option value="TAS">TAS</option>
-          <option value="NT">NT</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>How would AI agents save a $50M revenue company money? <span class="required">*</span></label>
-        <textarea name="business_case" required placeholder="Walk us through your thinking - which functions, what cost savings, how you'd approach it..." style="min-height:130px;"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Briefly describe your most relevant experience or project</label>
-        <textarea name="bio" placeholder="e.g. Built an AI agent system at [Company] that automated X, reducing Y by Z..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>LinkedIn Profile URL</label>
-        <input type="url" name="linkedin" placeholder="https://linkedin.com/in/yourprofile" />
-      </div>
-      <button type="submit" class="btn btn-primary form-submit">Submit Application</button>
-      <p class="form-note">All applications are reviewed within 3-5 business days.</p>
+      <button class="btn btn-primary" type="submit">Submit application</button>
     </form>
   </div>
 </div>
