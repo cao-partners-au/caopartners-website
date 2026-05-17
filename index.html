@@ -676,7 +676,7 @@ fbq('track', 'PageView');
     </button>
     <h3 id="modal-cao-title">Become a Chief Agent Officer</h3>
     <p class="modal-sub">If you clear the threshold, our team will be in touch within 48 hours.</p>
-    <form name="talent" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+    <form name="talent" method="POST" action="/.netlify/functions/form-submit" enctype="multipart/form-data" data-netlify="true" data-netlify-honeypot="bot-field">
       <input type="hidden" name="form-name" value="talent" />
       <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
       <div class="form-grid">
@@ -756,6 +756,10 @@ fbq('track', 'PageView');
         <div class="field full">
           <label for="c-linkedin">LinkedIn URL</label>
           <input id="c-linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/yourprofile" />
+        </div>
+        <div class="field full">
+          <label for="c-cv">Upload your CV <span style="font-weight:400;opacity:0.6;">(optional - PDF or Word)</span></label>
+          <input id="c-cv" name="cv" type="file" accept=".pdf,.doc,.docx" />
         </div>
       </div>
       <button class="btn btn-primary" type="submit">Submit application</button>
