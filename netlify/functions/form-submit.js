@@ -17,8 +17,7 @@ const BPS_REPS = [
   { email: "jonathan@caopartners.com.au", name: "Jonathan Ngo" },
 ];
 const TAS_REPS = [
-  { email: "michael@caopartners.com.au", name: "Michael Perks" },
-  { email: "oscar@caopartners.com.au",   name: "Oscar Badman" },
+  { email: "oscar@caopartners.com.au", name: "Oscar Badman" },
 ];
 
 // ── HTTP helper (stdlib https) ────────────────────────────────────────────────
