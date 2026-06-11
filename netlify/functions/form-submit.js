@@ -397,7 +397,7 @@ exports.handler = async (event) => {
 
       return {
         statusCode: 302,
-        headers: { Location: "/thank-you" },
+        headers: { Location: "/success.html" },
         body: "",
       };
     }
@@ -416,7 +416,7 @@ exports.handler = async (event) => {
 
       return {
         statusCode: 302,
-        headers: { Location: "/thank-you" },
+        headers: { Location: "/success.html" },
         body: "",
       };
     }
@@ -424,7 +424,7 @@ exports.handler = async (event) => {
     console.warn(`Unknown form-name: ${formName}`);
     return {
       statusCode: 302,
-      headers: { Location: "/thank-you" },
+      headers: { Location: "/success.html" },
       body: "",
     };
 
@@ -432,7 +432,7 @@ exports.handler = async (event) => {
     console.error("form-submit error:", err);
     return {
       statusCode: 302,
-      headers: { Location: "/thank-you" },
+      headers: { Location: "/success.html" },
       body: "",
     };
   }
