@@ -116,75 +116,53 @@ async function getNextRep(role) {
   }
 }
 
-// ── Form parsers ──────────────────────────────────────────────────────────────
-// Parse multipart as Buffer (bytes) so binary file data doesn't corrupt field parsing
-function parseMultipartFields(bodyBuf, boundary) {
-  const fields   = {};
-  const boundBuf = Buffer.from("--" + boundary);
-  const CRLF     = Buffer.from("\r\n");
-  const DBLCRLF  = Buffer.from("\r\n\r\n");
+// ── Parse multipart form (Netlify passes raw body + headers) ─────────────────
+async function parseMultipart(event) {
+  const contentType = event.headers["content-type"] || event.headers["Content-Type"] || "";
 
-  let pos = 0;
-  while (pos < bodyBuf.length) {
-    // Find next boundary
-    const bStart = bodyBuf.indexOf(boundBuf, pos);
-    if (bStart === -1) break;
-    pos = bStart + boundBuf.length;
+  if (contentType.includes("multipart/form-data")) {
+    // Dynamically require busboy (bundled via package.json)
+    const Busboy = require("busboy");
 
-    // Skip CRLF after boundary
-    if (bodyBuf.slice(pos, pos + 2).equals(CRLF)) pos += 2;
-    else if (bodyBuf.slice(pos, pos + 2).toString() === "--") break; // terminal boundary
+    return new Promise((resolve, reject) => {
+      const fields = {};
+      let fileBuffer = null;
+      let fileName   = null;
+      let fileMime   = null;
 
-    // Find header/body separator
-    const headerEnd = bodyBuf.indexOf(DBLCRLF, pos);
-    if (headerEnd === -1) break;
-    const header = bodyBuf.slice(pos, headerEnd).toString("utf8");
-    pos = headerEnd + 4;
+      const bodyBuffer = event.isBase64Encoded
+        ? Buffer.from(event.body, "base64")
+        : Buffer.from(event.body || "");
 
-    // Find next boundary to know where value ends
-    const nextBound = bodyBuf.indexOf(boundBuf, pos);
-    if (nextBound === -1) break;
-    // Value ends before \r\n-- (strip trailing CRLF)
-    let valueEnd = nextBound;
-    if (valueEnd >= 2 && bodyBuf.slice(valueEnd - 2, valueEnd).equals(CRLF)) valueEnd -= 2;
+      const bb = Busboy({ headers: { "content-type": contentType } });
 
-    const nm = header.match(/name="([^"]+)"/);
-    if (!nm) { pos = nextBound; continue; }
-    if (header.includes("filename=")) { pos = nextBound; continue; } // skip file fields
+      bb.on("field", (name, val) => { fields[name] = val; });
 
-    fields[nm[1]] = bodyBuf.slice(pos, valueEnd).toString("utf8");
-    pos = nextBound;
-  }
-  return fields;
-}
+      bb.on("file", (name, stream, info) => {
+        if (name === "cv") {
+          fileName = info.filename;
+          fileMime = info.mimeType;
+          const chunks = [];
+          stream.on("data", (d) => chunks.push(d));
+          stream.on("end",  ()  => { fileBuffer = Buffer.concat(chunks); });
+        } else {
+          stream.resume();
+        }
+      });
 
-function parseFields(event) {
-  const ct = (event.headers["content-type"] || event.headers["Content-Type"] || "").toLowerCase();
+      bb.on("finish", () => resolve({ fields, fileBuffer, fileName, fileMime }));
+      bb.on("error",  (e) => reject(e));
 
-  if (ct.includes("multipart/form-data")) {
-    // Decode as Buffer - handles binary file data safely
-    const bodyBuf = event.isBase64Encoded
-      ? Buffer.from(event.body || "", "base64")
-      : Buffer.from(event.body || "", "utf8");
-
-    // Detect actual boundary from first line of body.
-    // Some clients add extra leading dashes vs what Content-Type declares.
-    // e.g. Content-Type says boundary=----abc but body uses ------abc
-    const firstLine = bodyBuf.slice(0, 300).toString("utf8").split("\r\n")[0];
-    const actualBoundary = firstLine.startsWith("--") ? firstLine.slice(2) : null;
-
-    if (actualBoundary) {
-      return parseMultipartFields(bodyBuf, actualBoundary);
-    }
-    // Fallback: use boundary from Content-Type header
-    const bm = ct.match(/boundary=([^\s;]+)/);
-    if (bm) return parseMultipartFields(bodyBuf, bm[1]);
+      bb.write(bodyBuffer);
+      bb.end();
+    });
   }
 
-  const raw = event.isBase64Encoded
+  // Fallback: URL-encoded
+  const body = event.isBase64Encoded
     ? Buffer.from(event.body || "", "base64").toString("utf8")
-    : (event.body || "");
-  return parse(raw);
+    : event.body || "";
+  return { fields: parse(body), fileBuffer: null, fileName: null, fileMime: null };
 }
 
 function normalisePhone(raw) {
@@ -219,7 +197,7 @@ exports.handler = async (event) => {
   const REDIRECT = { statusCode: 302, headers: { Location: "/success.html" }, body: "" };
 
   try {
-    const fields   = parseFields(event);
+    const { fields, fileBuffer, fileName } = await parseMultipart(event);
     const formName = fields["form-name"] || fields.form_name || "";
     const isoNow   = new Date().toISOString();
     const name     = `${(fields.first_name || "").trim()} ${(fields.last_name || "").trim()}`.trim();
