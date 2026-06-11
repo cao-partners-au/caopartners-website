@@ -94,7 +94,7 @@ async function supabaseInsert(table, payload) {
 }
 
 // ── Supabase Storage upload ───────────────────────────────────────────────────
-async function uploadCvToSupabase(fileBuffer, fileName, candidateName) {
+async function uploadCvToSupabase(fileBuffer, fileName, fileMime, candidateName) {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.warn("Supabase env vars not set - skipping CV upload");
     return null;
@@ -231,7 +231,7 @@ exports.handler = async (event) => {
   const REDIRECT = { statusCode: 302, headers: { Location: "/success.html" }, body: "" };
 
   try {
-    const { fields, fileBuffer, fileName } = await parseMultipart(event);
+    const { fields, fileBuffer, fileName, fileMime } = await parseMultipart(event);
     const formName = fields["form-name"] || fields.form_name || "";
     const isoNow   = new Date().toISOString();
     const name     = `${(fields.first_name || "").trim()} ${(fields.last_name || "").trim()}`.trim();
@@ -242,7 +242,7 @@ exports.handler = async (event) => {
     if (formName === "talent") {
       let cvUrl = null;
       if (fileBuffer && fileBuffer.length > 0) {
-        cvUrl = await uploadCvToSupabase(fileBuffer, fileName, name);
+        cvUrl = await uploadCvToSupabase(fileBuffer, fileName, fileMime, name);
       }
       const rep = await getNextRep("TAS");
       const ok  = await supabaseInsert("cao_Candidates", {
