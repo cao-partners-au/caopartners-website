@@ -93,6 +93,40 @@ async function supabaseInsert(table, payload) {
   return true;
 }
 
+// ── Supabase Storage upload ───────────────────────────────────────────────────
+async function uploadCvToSupabase(fileBuffer, fileName, candidateName) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.warn("Supabase env vars not set - skipping CV upload");
+    return null;
+  }
+
+  const ts      = Date.now();
+  const safe    = (candidateName || "candidate").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+  const ext     = (fileName || "cv.pdf").split(".").pop().toLowerCase();
+  const path    = `${ts}-${safe}.${ext}`;
+
+  const res = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/candidate-cvs/${path}`,
+    {
+      method:  "POST",
+      headers: {
+        Authorization:  `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/octet-stream",
+        "x-upsert":     "false",
+      },
+      body: fileBuffer,
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error(`CV upload failed: ${res.status} ${err}`);
+    return null;
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/candidate-cvs/${path}`;
+}
+
 // ── Round robin ───────────────────────────────────────────────────────────────
 async function getNextRep(role) {
   const reps = role === "BPS" ? BPS_REPS : TAS_REPS;
@@ -206,6 +240,10 @@ exports.handler = async (event) => {
     console.log(`[form-submit] isBase64=${event.isBase64Encoded} bodyLen=${(event.body||"").length}`);
 
     if (formName === "talent") {
+      let cvUrl = null;
+      if (fileBuffer && fileBuffer.length > 0) {
+        cvUrl = await uploadCvToSupabase(fileBuffer, fileName, name);
+      }
       const rep = await getNextRep("TAS");
       const ok  = await supabaseInsert("cao_Candidates", {
         id:                  randomUUID(),
@@ -224,7 +262,7 @@ exports.handler = async (event) => {
         interview_completed: "Not Yet",
         candidate_status:    "New",
         assigned_to:         rep ? rep.email : null,
-        cv_url:              null,
+        cv_url:              cvUrl || null,
         created_at:          isoNow,
         updated_at:          isoNow,
       });
