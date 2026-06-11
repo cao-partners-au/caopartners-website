@@ -111,7 +111,7 @@ async function uploadCvToSupabase(fileBuffer, fileName, candidateName) {
       method:  "POST",
       headers: {
         Authorization:  `Bearer ${SUPABASE_KEY}`,
-        "Content-Type": "application/octet-stream",
+        "Content-Type": fileMime || "application/pdf",
         "x-upsert":     "false",
       },
       body: fileBuffer,
