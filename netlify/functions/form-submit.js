@@ -13,7 +13,7 @@ const SUPABASE_KEY         = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ROUND_ROBIN_ENABLED  = process.env.ROUND_ROBIN_ENABLED === "true";
 
 const BPS_REPS = [
-  { email: "michael@caopartners.com.au", name: "Michael Perks" },
+  { email: "robert@caopartners.com.au", name: "Robert Kelly" },
   { email: "jonathan@caopartners.com.au", name: "Jonathan Ngo" },
 ];
 const TAS_REPS = [
