@@ -245,6 +245,10 @@ exports.handler = async (event) => {
         cvUrl = await uploadCvToSupabase(fileBuffer, fileName, fileMime, name);
       }
       const rep = await getNextRep("TAS");
+      // TAS is Oscar-only, so a candidate must never land unassigned even if the
+      // round robin is disabled/empty. Write BOTH columns: the outreach cron keys
+      // off assigned_to, while the CRM UI displays tas_assigned.
+      const tasEmail = (rep && rep.email) || "oscar@caopartners.com.au";
       const ok  = await supabaseInsert("cao_Candidates", {
         id:                  randomUUID(),
         submitted_at:        isoNow,
@@ -261,7 +265,8 @@ exports.handler = async (event) => {
         interview_booked:    "Not Yet",
         interview_completed: "Not Yet",
         candidate_status:    "New",
-        assigned_to:         rep ? rep.email : null,
+        assigned_to:         tasEmail,
+        tas_assigned:        tasEmail,
         cv_url:              cvUrl || null,
         created_at:          isoNow,
         updated_at:          isoNow,
