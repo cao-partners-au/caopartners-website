@@ -263,7 +263,7 @@ function metaPhoneDigits(raw) {
 // Best-effort server-side Lead event. Fully isolated: any error/timeout/non-200 is
 // logged and swallowed so it can never affect the lead save or the redirect. Shares
 // event_id with the client pixel so Meta dedupes the pair into one Lead.
-async function sendMetaLeadEvent(event, fields) {
+async function sendMetaLeadEvent(event, fields, leadType) {
   if (!META_CAPI_TOKEN || !META_PIXEL_ID) {
     console.warn("[meta-capi] token/pixel id not set — skipping Lead event");
     return;
@@ -295,7 +295,7 @@ async function sendMetaLeadEvent(event, fields) {
         action_source:    "website",
         event_source_url: fields.fb_source_url || headers["referer"] || headers["Referer"] || undefined,
         user_data:        userData,
-        custom_data:      { lead_type: "enquire" },
+        custom_data:      { lead_type: leadType || "enquire" },
       }],
     };
     if (META_TEST_EVENT_CODE) payload.test_event_code = META_TEST_EVENT_CODE;
@@ -400,6 +400,10 @@ exports.handler = async (event) => {
         updated_at:          isoNow,
       });
       console.log(`[form-submit] talent write: ${ok ? "OK" : "FAILED"}`);
+      // Server-side Meta Lead event, only on a real new insert (not the dedup-skip path).
+      // Awaited (serverless can freeze after return) and isolated so it can never break
+      // the redirect. Shares event_id with the client pixel for dedup.
+      if (ok) await sendMetaLeadEvent(event, fields, "talent");
       return REDIRECT;
     }
 
@@ -430,7 +434,7 @@ exports.handler = async (event) => {
       // Fire the server-side Meta Lead event only on a real new insert (not the dedup-skip
       // path above), so the event count stays honest. Awaited because the serverless
       // instance can freeze after we return; isolated so it can never break the redirect.
-      if (ok) await sendMetaLeadEvent(event, fields);
+      if (ok) await sendMetaLeadEvent(event, fields, "enquire");
       return REDIRECT;
     }
 

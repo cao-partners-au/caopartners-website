@@ -56,12 +56,10 @@
   }
 
   // Mid-funnel Meta Pixel signals (client-side only; no CAPI — these never hit the
-  // server). Opening a modal is a strong intent signal: hire -> InitiateCheckout,
-  // become-a-CAO -> StartApplication (custom). Fire once per modal per page load so
-  // open/close/reopen doesn't inflate the count.
+  // server). Opening the become-a-CAO modal is a candidate intent signal. Fire once
+  // per modal per page load so open/close/reopen doesn't inflate the count.
   const FB_MODAL_EVENTS = {
-    'modal-hire': { event: 'InitiateCheckout', content: 'hire-cao' },
-    'modal-cao':  { event: 'StartApplication', content: 'become-cao' },
+    'modal-cao': { event: 'StartApplication', content: 'become-cao' },
   };
   const fbModalFired = {};
   const trackModalOpen = (id) => {
