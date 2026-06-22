@@ -55,6 +55,22 @@
     counters.forEach((el) => cio.observe(el));
   }
 
+  // Mid-funnel Meta Pixel signals (client-side only; no CAPI — these never hit the
+  // server). Opening a modal is a strong intent signal: hire -> InitiateCheckout,
+  // become-a-CAO -> StartApplication (custom). Fire once per modal per page load so
+  // open/close/reopen doesn't inflate the count.
+  const FB_MODAL_EVENTS = {
+    'modal-hire': { event: 'InitiateCheckout', content: 'hire-cao' },
+    'modal-cao':  { event: 'StartApplication', content: 'become-cao' },
+  };
+  const fbModalFired = {};
+  const trackModalOpen = (id) => {
+    const cfg = FB_MODAL_EVENTS[id];
+    if (!cfg || fbModalFired[id] || typeof window.fbq !== 'function') return;
+    fbModalFired[id] = true;
+    try { fbq('track', cfg.event, { content_name: cfg.content }); } catch (e) {}
+  };
+
   // --- modals ---
   const openModal = (id) => {
     const m = document.getElementById(id);
@@ -62,6 +78,7 @@
     m.classList.add('open');
     m.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    trackModalOpen(id);
     const firstInput = m.querySelector('input, select, textarea');
     if (firstInput) setTimeout(() => firstInput.focus(), 240);
   };
@@ -91,6 +108,14 @@
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal-overlay.open').forEach(closeModal);
     }
+  });
+
+  // Mid-funnel: clicking a contact email is a pure intent signal (client-side only).
+  document.querySelectorAll('a[href^="mailto:"]').forEach((a) => {
+    a.addEventListener('click', () => {
+      if (typeof window.fbq !== 'function') return;
+      try { fbq('track', 'Contact', { content_name: a.getAttribute('href').replace('mailto:', '') }); } catch (e) {}
+    });
   });
 
   // --- hero neural network canvas ---
