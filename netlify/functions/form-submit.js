@@ -6,11 +6,20 @@
 const { parse }      = require("querystring");
 const https          = require("https");
 const { URL }        = require("url");
-const { randomUUID } = require("crypto");
+const { randomUUID, createHash } = require("crypto");
 
 const SUPABASE_URL         = process.env.SUPABASE_URL;
 const SUPABASE_KEY         = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ROUND_ROBIN_ENABLED  = process.env.ROUND_ROBIN_ENABLED === "true";
+
+// Meta Conversions API (server-side Lead event). Pixel ID is non-secret (it's in the
+// client HTML); the access token is a long-lived System User token and MUST stay secret.
+// META_TEST_EVENT_CODE is optional — set it to route events to Events Manager → Test
+// Events for validation, leave empty for live counting.
+const META_PIXEL_ID        = process.env.META_PIXEL_ID;
+const META_CAPI_TOKEN      = process.env.META_CAPI_ACCESS_TOKEN;
+const META_TEST_EVENT_CODE = process.env.META_TEST_EVENT_CODE;
+const META_API_VERSION     = "v21.0"; // bump ~yearly before Meta deprecates it
 
 const BPS_REPS = [
   { email: "robert@caopartners.com.au", name: "Robert Kelly" },
@@ -226,6 +235,103 @@ function normalisePhone(raw) {
   return raw.trim();
 }
 
+// ── Meta CAPI helpers ─────────────────────────────────────────────────────────
+function sha256(v) {
+  return createHash("sha256").update(v).digest("hex");
+}
+
+// Normalize then SHA-256 a PII field (trim + lowercase per Meta's spec).
+function hashPii(v) {
+  if (v == null) return null;
+  const s = String(v).trim().toLowerCase();
+  return s ? sha256(s) : null;
+}
+
+// Meta wants phone as digits-only, country-coded, no '+' or leading zero. AU-centric:
+// 04xx xxx xxx -> 614xxxxxxxx. Returns null for anything implausible so we omit the
+// param rather than send garbage that drags down match quality.
+function metaPhoneDigits(raw) {
+  if (!raw) return null;
+  let d = String(raw).replace(/\D+/g, "");
+  if (!d) return null;
+  if (d.startsWith("0"))       d = "61" + d.slice(1);
+  else if (!d.startsWith("61")) d = "61" + d;
+  if (d.length < 10 || d.length > 13) return null;
+  return d;
+}
+
+// Best-effort server-side Lead event. Fully isolated: any error/timeout/non-200 is
+// logged and swallowed so it can never affect the lead save or the redirect. Shares
+// event_id with the client pixel so Meta dedupes the pair into one Lead.
+async function sendMetaLeadEvent(event, fields) {
+  if (!META_CAPI_TOKEN || !META_PIXEL_ID) {
+    console.warn("[meta-capi] token/pixel id not set — skipping Lead event");
+    return;
+  }
+  try {
+    const headers = event.headers || {};
+    const clientIp = headers["x-nf-client-connection-ip"]
+      || (headers["x-forwarded-for"] || "").split(",")[0].trim()
+      || undefined;
+    const userAgent = headers["user-agent"] || headers["User-Agent"] || undefined;
+
+    const userData = { country: sha256("au") };
+    const em = hashPii(fields.email);       if (em) userData.em = em;
+    const phone = metaPhoneDigits(fields.phone); if (phone) userData.ph = sha256(phone);
+    const fn = hashPii(fields.first_name);  if (fn) userData.fn = fn;
+    const ln = hashPii(fields.last_name);   if (ln) userData.ln = ln;
+    const st = hashPii(fields.state);       if (st) userData.st = st;
+    if (fields.fb_fbp) userData.fbp = fields.fb_fbp;
+    if (fields.fb_fbc) userData.fbc = fields.fb_fbc;
+    if (clientIp)  userData.client_ip_address = clientIp;
+    if (userAgent) userData.client_user_agent = userAgent;
+
+    const eventId = fields.fb_event_id || randomUUID();
+    const payload = {
+      data: [{
+        event_name:       "Lead",
+        event_time:       Math.floor(Date.now() / 1000),
+        event_id:         eventId,
+        action_source:    "website",
+        event_source_url: fields.fb_source_url || headers["referer"] || headers["Referer"] || undefined,
+        user_data:        userData,
+        custom_data:      { lead_type: "enquire" },
+      }],
+    };
+    if (META_TEST_EVENT_CODE) payload.test_event_code = META_TEST_EVENT_CODE;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    let res;
+    try {
+      res = await fetch(
+        `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events?access_token=${encodeURIComponent(META_CAPI_TOKEN)}`,
+        {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify(payload),
+          signal:  controller.signal,
+        }
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const text = await res.text();
+    let parsed = {};
+    try { parsed = JSON.parse(text); } catch (e) {}
+    const trace = parsed.fbtrace_id || "";
+    if (!res.ok) {
+      const msg = parsed.error ? parsed.error.message : text;
+      console.error(`[meta-capi] Lead failed (${res.status}) event_id=${eventId} fbtrace_id=${trace} err=${msg}`);
+    } else {
+      console.log(`[meta-capi] Lead OK events_received=${parsed.events_received} event_id=${eventId} fbtrace_id=${trace}`);
+    }
+  } catch (err) {
+    console.error("[meta-capi] Lead error (ignored):", err.message);
+  }
+}
+
 function nowAEST() {
   const d    = new Date();
   const aest = new Date(d.getTime() + 10 * 60 * 60 * 1000);
@@ -321,6 +427,10 @@ exports.handler = async (event) => {
         updated_at:   isoNow,
       });
       console.log(`[form-submit] enquire write: ${ok ? "OK" : "FAILED"}`);
+      // Fire the server-side Meta Lead event only on a real new insert (not the dedup-skip
+      // path above), so the event count stays honest. Awaited because the serverless
+      // instance can freeze after we return; isolated so it can never break the redirect.
+      if (ok) await sendMetaLeadEvent(event, fields);
       return REDIRECT;
     }
 

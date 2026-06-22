@@ -613,6 +613,12 @@ fbq('track', 'PageView');
     <p class="modal-sub">Tell us about your business. We will be in touch within 24 hours.</p>
     <form name="enquire" method="POST" action="/.netlify/functions/form-submit" enctype="multipart/form-data">
       <input type="hidden" name="form-name" value="enquire" />
+      <!-- Meta CAPI: populated on submit so the server event shares an event_id with
+           the client pixel (dedup) and carries the browser's fbp/fbc cookies. -->
+      <input type="hidden" name="fb_event_id" value="" />
+      <input type="hidden" name="fb_fbp" value="" />
+      <input type="hidden" name="fb_fbc" value="" />
+      <input type="hidden" name="fb_source_url" value="" />
       <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
       <div class="form-grid">
         <div class="field">
@@ -908,6 +914,45 @@ void main() {
       if (b && !b.disabled) { b.disabled = true; b.dataset.label = b.textContent; b.textContent = 'Sending…'; }
     });
   });
+
+  // Meta CAPI dual-send: on the enquire (lead) form, fire the client-side Lead pixel
+  // AND hand the server a shared event_id + the browser's fbp/fbc so form-submit.js can
+  // send a deduplicated server-side Lead event. Fires at submit time (pre-navigation)
+  // for reliability; Meta dedupes the client + server pair on the shared event_id.
+  (function () {
+    function readCookie(name) {
+      var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? m.pop() : '';
+    }
+    function genId() {
+      try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+      return 'e' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+    // Reconstruct _fbc from an fbclid URL param if Meta hasn't set the cookie yet.
+    function deriveFbc(existing) {
+      if (existing) return existing;
+      var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+      return m ? 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]) : '';
+    }
+    var form = document.querySelector('form[name="enquire"]');
+    if (!form) return;
+    form.addEventListener('submit', function () {
+      var eventId = genId();
+      var setField = function (name, val) {
+        var el = form.querySelector('input[name="' + name + '"]');
+        if (el) el.value = val || '';
+      };
+      setField('fb_event_id', eventId);
+      setField('fb_fbp', readCookie('_fbp'));
+      setField('fb_fbc', deriveFbc(readCookie('_fbc')));
+      setField('fb_source_url', window.location.href);
+      try {
+        if (window.fbq) {
+          fbq('track', 'Lead', { content_name: 'enquire' }, { eventID: eventId });
+        }
+      } catch (e) {}
+    });
+  })();
 </script>
 </body>
 </html>
