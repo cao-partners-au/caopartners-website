@@ -899,5 +899,15 @@ void main() {
 <script src="fluid.js"></script>
 <script src="app.js"></script>
 <script src="skyline.js"></script>
+<script>
+  // Prevent double-submit: disable the submit button on first submit so a fast
+  // double-click can't POST the form (and create a duplicate lead/candidate) twice.
+  document.querySelectorAll('form[name="enquire"], form[name="talent"]').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      var b = f.querySelector('button[type="submit"]');
+      if (b && !b.disabled) { b.disabled = true; b.dataset.label = b.textContent; b.textContent = 'Sending…'; }
+    });
+  });
+</script>
 </body>
 </html>

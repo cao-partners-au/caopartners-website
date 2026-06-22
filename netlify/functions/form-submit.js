@@ -51,6 +51,23 @@ async function supabaseGet(path) {
   return JSON.parse(res.body);
 }
 
+// Idempotency guard: the form's submit button isn't debounced, so a double-click
+// double-POSTs (~1-2s apart) and we'd insert the same lead/candidate twice. If a row
+// with this email already landed in the last 90s, treat this POST as the duplicate and
+// skip it (no insert, no round-robin advance). On any error we proceed (never block a
+// genuine submission).
+async function isRecentDuplicate(table, email) {
+  if (!email) return false;
+  try {
+    const since = new Date(Date.now() - 90 * 1000).toISOString();
+    const rows = await supabaseGet(`${table}?email=eq.${encodeURIComponent(email)}&created_at=gte.${encodeURIComponent(since)}&select=id&limit=1`);
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (e) {
+    console.error("[form-submit] dedup check failed, proceeding:", e.message);
+    return false;
+  }
+}
+
 async function supabasePatch(path, payload) {
   const body = JSON.stringify(payload);
   return httpsRequest(
@@ -240,6 +257,11 @@ exports.handler = async (event) => {
     console.log(`[form-submit] isBase64=${event.isBase64Encoded} bodyLen=${(event.body||"").length}`);
 
     if (formName === "talent") {
+      const email = (fields.email || "").toLowerCase().trim();
+      if (await isRecentDuplicate("cao_Candidates", email)) {
+        console.log(`[form-submit] duplicate talent submission within 90s for ${email} — skipping`);
+        return REDIRECT;
+      }
       let cvUrl = null;
       if (fileBuffer && fileBuffer.length > 0) {
         cvUrl = await uploadCvToSupabase(fileBuffer, fileName, fileMime, name);
@@ -276,6 +298,11 @@ exports.handler = async (event) => {
     }
 
     if (formName === "enquire") {
+      const email = (fields.email || "").toLowerCase().trim();
+      if (await isRecentDuplicate("cao_Leads", email)) {
+        console.log(`[form-submit] duplicate enquire submission within 90s for ${email} — skipping`);
+        return REDIRECT;
+      }
       const rep = await getNextRep("BPS");
       const ok  = await supabaseInsert("cao_Leads", {
         id:           randomUUID(),
