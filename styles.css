@@ -194,7 +194,6 @@ img, svg { display: block; max-width: 100%; }
 @media (max-width: 900px) {
   .nav-links { display: none; }
   .nav-cta .btn-ghost { display: none; }
-  .hire-page .nav-cta { display: none; }
 }
 
 /* Both CTA buttons visible in mobile sticky nav */
@@ -1705,6 +1704,9 @@ section { position: relative; }
    MOBILE NAV — max-width: 900px only, desktop untouched
    ============================================================ */
 .nav-hamburger {
+  display: none;
+}
+.mobile-nav {
   display: none;
 }
 
