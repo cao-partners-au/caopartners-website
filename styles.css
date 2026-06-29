@@ -64,6 +64,17 @@ img, svg { display: block; max-width: 100%; }
 
 /* ----------- utilities ---------- */
 .container { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--pad-x); }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .eyebrow {
   display: inline-flex; align-items: center; gap: 10px;
   padding: 8px 14px 8px 12px;
@@ -1568,11 +1579,11 @@ section { position: relative; }
 .modal-close:hover { background: var(--hover); color: var(--t1); }
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
 }
 .form-grid .full { grid-column: span 2; }
-.field { display: flex; flex-direction: column; gap: 6px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field label {
   font-size: 12px;
   font-weight: 500;
@@ -1584,6 +1595,8 @@ section { position: relative; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px 14px;
+  width: 100%;
+  min-width: 0;
   font-size: 14px;
   color: var(--t1);
   font-family: inherit;
@@ -1597,10 +1610,94 @@ section { position: relative; }
 .field textarea { resize: vertical; min-height: 96px; }
 .modal .btn-primary { width: 100%; margin-top: 24px; padding: 16px; }
 .honey { position: absolute; left: -9999px; }
+
+/* ============================================================
+   DIRECT FORM PAGES
+   ============================================================ */
+.form-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(18,105,255,0.18), transparent 42%),
+    var(--bg);
+  color: var(--t2);
+  padding: 28px 0 72px;
+}
+.form-page-nav {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 var(--pad-x);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.form-page-back {
+  color: var(--t3);
+  font-size: 14px;
+  transition: color 180ms;
+}
+.form-page-back:hover { color: var(--t1); }
+.form-page-nav .logo-svg {
+  height: 34px;
+  width: auto;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+.form-page-shell {
+  width: min(760px, calc(100% - 40px));
+  margin: clamp(44px, 8vw, 86px) auto 0;
+}
+.form-page-kicker {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+}
+.form-page h1 {
+  color: var(--t1);
+  font-size: clamp(34px, 6vw, 64px);
+  font-weight: 200;
+  line-height: 1.04;
+  letter-spacing: 0;
+  margin: 0 0 18px;
+}
+.form-page-intro {
+  color: var(--t3);
+  font-size: clamp(16px, 2vw, 19px);
+  max-width: 58ch;
+  margin: 0 0 34px;
+}
+.form-panel {
+  background: rgba(7,8,18,0.92);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(24px, 5vw, 42px);
+  box-shadow: 0 30px 80px -35px rgba(0,0,0,0.7);
+}
+.form-panel .btn-primary {
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px;
+}
+.form-page-note {
+  color: var(--t4);
+  font-size: 13px;
+  margin: 18px 0 0;
+  text-align: center;
+}
+
 @media (max-width: 540px) {
   .modal { padding: 32px 24px 24px; }
-  .form-grid { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
   .form-grid .full { grid-column: span 1; }
+  .form-page-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .form-page-shell { width: calc(100% - 32px); }
+  .form-panel { padding: 22px; }
 }
 
 /* ============================================================

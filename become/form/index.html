@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Become a Chief Agent Officer | CAO Partners</title>
+<meta name="description" content="Apply to join the CAO Partners talent pool for Chief Agent Officer and AI operator roles." />
+<meta property="og:title" content="Become a Chief Agent Officer | CAO Partners" />
+<meta property="og:description" content="Apply to join the CAO Partners talent pool for Chief Agent Officer and AI operator roles." />
+<meta property="og:image" content="/assets/social-cover.png" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/favicon.svg" />
+<link rel="mask-icon" href="/favicon.svg" color="#1269ff" />
+
+<!-- Google tag -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18020152935"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-18020152935');
+</script>
+
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '942963975160100');
+fbq('track', 'PageView');
+fbq('track', 'StartApplication', { content_name: 'become-cao' });
+</script>
+
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="form-page">
+  <header class="form-page-nav">
+    <a href="/" class="logo" aria-label="CAO Partners home">
+      <img class="logo-svg" src="/logo.svg" alt="CAO Partners" />
+    </a>
+    <a class="form-page-back" href="/">Back to CAO Partners</a>
+  </header>
+
+  <main class="form-page-shell">
+    <p class="form-page-kicker">Talent application</p>
+    <h1>Apply to become a Chief Agent Officer.</h1>
+    <p class="form-page-intro">If you clear the threshold, our team will be in touch within 48 hours.</p>
+
+    <section class="form-panel" aria-labelledby="become-form-title">
+      <h2 id="become-form-title" class="sr-only">Chief Agent Officer application form</h2>
+      <form name="talent" method="POST" action="/.netlify/functions/form-submit" enctype="multipart/form-data">
+        <input type="hidden" name="form-name" value="talent" />
+        <input type="hidden" name="fb_event_id" value="" />
+        <input type="hidden" name="fb_fbp" value="" />
+        <input type="hidden" name="fb_fbc" value="" />
+        <input type="hidden" name="fb_source_url" value="" />
+        <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="c-first">First name</label>
+            <input id="c-first" name="first_name" type="text" required placeholder="Alex" />
+          </div>
+          <div class="field">
+            <label for="c-last">Last name</label>
+            <input id="c-last" name="last_name" type="text" required placeholder="Chen" />
+          </div>
+          <div class="field">
+            <label for="c-email">Email</label>
+            <input id="c-email" name="email" type="email" required placeholder="alex@email.com" />
+          </div>
+          <div class="field">
+            <label for="c-phone">Phone</label>
+            <input id="c-phone" name="phone" type="tel" placeholder="+61 4xx xxx xxx" />
+          </div>
+          <div class="field full">
+            <label for="c-title">Current or most recent job title</label>
+            <input id="c-title" name="current_title" type="text" required placeholder="e.g. Solutions Architect, Head of Engineering" />
+          </div>
+          <div class="field">
+            <label for="c-years">Years of experience in tech / AI / operations</label>
+            <select id="c-years" name="years_experience" required>
+              <option value="">Select</option>
+              <option>Less than 1 year</option>
+              <option>1-2 years</option>
+              <option>3-5 years</option>
+              <option>6-10 years</option>
+              <option>10+ years</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="c-state">State</label>
+            <select id="c-state" name="state" required>
+              <option value="" disabled selected>Select</option>
+              <option value="QLD">QLD</option>
+              <option value="NSW">NSW</option>
+              <option value="VIC">VIC</option>
+              <option value="WA">WA</option>
+              <option value="SA">SA</option>
+              <option value="ACT">ACT</option>
+              <option value="TAS">TAS</option>
+              <option value="NT">NT</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="c-ai">Have you built or deployed AI agents or automation workflows?</label>
+            <select id="c-ai" name="ai_experience" required>
+              <option value="">Select</option>
+              <option>Yes - extensively (multiple production deployments)</option>
+              <option>Yes - some (1-2 projects, limited scope)</option>
+              <option>No - but I have strong technical foundations</option>
+              <option>No - I'm newer to AI but learning fast</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="c-avail">Which best describes your current situation?</label>
+            <select id="c-avail" name="availability" required>
+              <option value="">Select</option>
+              <option>Actively looking - available now</option>
+              <option>Open to opportunities - currently employed</option>
+              <option>Recently made redundant</option>
+              <option>Exploring options, not urgent</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="c-built">How would AI agents save a $50M revenue company money?</label>
+            <textarea id="c-built" name="business_case" required placeholder="Walk us through your thinking - which functions, what cost savings, how you'd approach it..."></textarea>
+          </div>
+          <div class="field full">
+            <label for="c-bio">Briefly describe your most relevant experience or project</label>
+            <textarea id="c-bio" name="bio" placeholder="e.g. Built an AI agent system at [Company] that automated X, reducing Y by Z..."></textarea>
+          </div>
+          <div class="field full">
+            <label for="c-linkedin">LinkedIn URL</label>
+            <input id="c-linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/yourprofile" />
+          </div>
+          <div class="field full">
+            <label for="c-cv">Upload your CV <span style="font-weight:400;opacity:0.6;">(optional - PDF or Word)</span></label>
+            <input id="c-cv" name="cv" type="file" accept=".pdf,.doc,.docx" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Submit application</button>
+      </form>
+      <p class="form-page-note">Shortlisted applicants move to a structured interview before being matched to roles.</p>
+    </section>
+  </main>
+
+  <script src="/lead-form.js"></script>
+</body>
+</html>
