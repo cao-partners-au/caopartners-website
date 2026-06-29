@@ -194,6 +194,7 @@ img, svg { display: block; max-width: 100%; }
 @media (max-width: 900px) {
   .nav-links { display: none; }
   .nav-cta .btn-ghost { display: none; }
+  .hire-page .nav-cta { display: none; }
 }
 
 /* Both CTA buttons visible in mobile sticky nav */
