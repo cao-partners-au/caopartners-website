@@ -11,6 +11,7 @@ const { randomUUID, createHash } = require("crypto");
 const SUPABASE_URL         = process.env.SUPABASE_URL;
 const SUPABASE_KEY         = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ROUND_ROBIN_ENABLED  = process.env.ROUND_ROBIN_ENABLED === "true";
+const TURNSTILE_SECRET     = process.env.TURNSTILE_SECRET; // Cloudflare Turnstile (CAPTCHA) server-side key
 
 // Meta Conversions API (server-side Lead event). Pixel ID is non-secret (it's in the
 // client HTML); the access token is a long-lived System User token and MUST stay secret.
@@ -51,6 +52,32 @@ function spamReason(fields) {
   const domain = ((fields.email || "").toLowerCase().trim().split("@")[1] || "").trim();
   if (domain && DISPOSABLE_DOMAINS.has(domain)) return `disposable domain ${domain}`;
   return null;
+}
+
+// Cloudflare Turnstile (CAPTCHA) server-side verification. Returns null when OK — or
+// when no secret is configured in this deploy context (falls back to honeypot+blocklist
+// so non-prod contexts don't break). Returns a reason string when the token is missing
+// or invalid. Network errors fail OPEN (never block a genuine user on a Cloudflare blip).
+async function turnstileReason(fields, event) {
+  if (!TURNSTILE_SECRET) return null;
+  const token = fields["cf-turnstile-response"] || fields.cf_turnstile_response || "";
+  if (!token) return "missing Turnstile token";
+  try {
+    const headers = event.headers || {};
+    const ip = headers["x-nf-client-connection-ip"] || (headers["x-forwarded-for"] || "").split(",")[0].trim() || "";
+    const params = new URLSearchParams({ secret: TURNSTILE_SECRET, response: token });
+    if (ip) params.set("remoteip", ip);
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+    const data = await res.json().catch(() => ({}));
+    return data.success ? null : `Turnstile failed (${(data["error-codes"] || []).join(",") || "no success"})`;
+  } catch (e) {
+    console.error("[form-submit] Turnstile verify error, allowing:", e.message);
+    return null; // fail open
+  }
 }
 
 // ── HTTP helper (stdlib https) ────────────────────────────────────────────────
@@ -391,6 +418,12 @@ exports.handler = async (event) => {
     const spam = spamReason(fields);
     if (spam) {
       console.log(`[form-submit] SPAM blocked (${spam}) email="${fields.email}" name="${name}"`);
+      return REDIRECT;
+    }
+    // Turnstile (real CAPTCHA gate). Runs only when the secret is configured.
+    const tsFail = await turnstileReason(fields, event);
+    if (tsFail) {
+      console.log(`[form-submit] SPAM blocked (${tsFail}) email="${fields.email}" name="${name}"`);
       return REDIRECT;
     }
 
