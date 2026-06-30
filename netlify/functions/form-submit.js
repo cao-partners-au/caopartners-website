@@ -29,6 +29,30 @@ const TAS_REPS = [
   { email: "oscar@caopartners.com.au", name: "Oscar Badman" },
 ];
 
+// Spam defence. These forms POST to this function (not Netlify's native form handler),
+// so the page's bot-field honeypot and any disposable-domain filtering must be enforced
+// HERE. Known throwaway / probe domains we've seen hammering the form, plus common
+// disposable providers. Add new offenders as they appear.
+const DISPOSABLE_DOMAINS = new Set([
+  "immenseignite.info", "web-library.net",
+  "mailinator.com", "guerrillamail.com", "guerrillamail.info", "sharklasers.com",
+  "10minutemail.com", "yopmail.com", "tempmail.com", "temp-mail.org", "trashmail.com",
+  "getnada.com", "dispostable.com", "maildrop.cc", "throwawaymail.com", "fakeinbox.com",
+  "mintemail.com", "moakt.com", "emailondeck.com", "tempr.email",
+]);
+
+// Returns a reason string if this submission looks like bot spam, else null.
+// We respond with the normal success redirect either way so bots get no signal.
+function spamReason(fields) {
+  // 1. Honeypot: real users never see/fill bot-field; bots that fill every input do.
+  const honey = (fields["bot-field"] || fields.bot_field || "").trim();
+  if (honey) return "honeypot filled";
+  // 2. Disposable / known-probe email domain.
+  const domain = ((fields.email || "").toLowerCase().trim().split("@")[1] || "").trim();
+  if (domain && DISPOSABLE_DOMAINS.has(domain)) return `disposable domain ${domain}`;
+  return null;
+}
+
 // ── HTTP helper (stdlib https) ────────────────────────────────────────────────
 function httpsRequest(urlStr, method, headers, body) {
   return new Promise((resolve, reject) => {
@@ -361,6 +385,14 @@ exports.handler = async (event) => {
 
     console.log(`[form-submit] form="${formName}" email="${fields.email}" keys=${Object.keys(fields).join(",")}`);
     console.log(`[form-submit] isBase64=${event.isBase64Encoded} bodyLen=${(event.body||"").length}`);
+
+    // Spam gate: drop honeypot-filled + disposable-domain submissions silently (return
+    // the normal success redirect so the bot can't tell it was blocked). No DB write.
+    const spam = spamReason(fields);
+    if (spam) {
+      console.log(`[form-submit] SPAM blocked (${spam}) email="${fields.email}" name="${name}"`);
+      return REDIRECT;
+    }
 
     if (formName === "talent") {
       const email = (fields.email || "").toLowerCase().trim();
