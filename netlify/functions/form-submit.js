@@ -23,7 +23,7 @@ const META_TEST_EVENT_CODE = process.env.META_TEST_EVENT_CODE;
 const META_API_VERSION     = "v21.0"; // bump ~yearly before Meta deprecates it
 
 const BPS_REPS = [
-  { email: "robert@caopartners.com.au", name: "Robert Kelly" },
+  { email: "gulliver@caopartners.com.au", name: "Gulliver Burns" },
   { email: "jonathan@caopartners.com.au", name: "Jonathan Ngo" },
 ];
 const TAS_REPS = [
