@@ -27,6 +27,9 @@ const META_API_VERSION     = "v21.0"; // bump ~yearly before Meta deprecates it
 // lives in the TIKTOK_EVENTS_API_TOKEN env var (never committed).
 const TIKTOK_PIXEL_ID      = "D9DJ3TJC77U9058HLMCG";
 const TIKTOK_EAPI_TOKEN    = process.env.TIKTOK_EVENTS_API_TOKEN;
+// Optional: set TIKTOK_TEST_EVENT_CODE in Netlify env to route server events to Events Manager
+// -> Test Events for verification. Leave unset for live counting. (Same pattern as Meta.)
+const TIKTOK_TEST_CODE     = process.env.TIKTOK_TEST_EVENT_CODE;
 
 const BPS_REPS = [
   { email: "gulliver@caopartners.com.au", name: "Gulliver Burns" },
@@ -441,6 +444,7 @@ async function sendTikTokLeadEvent(event, fields) {
         properties: { contents: [{ content_name: "Hire a CAO" }] },
       }],
     };
+    if (TIKTOK_TEST_CODE) payload.test_event_code = TIKTOK_TEST_CODE;
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3500);
