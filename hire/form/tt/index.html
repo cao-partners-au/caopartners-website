@@ -77,6 +77,10 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
       <form name="enquire" method="POST" action="/.netlify/functions/form-submit" enctype="multipart/form-data">
         <input type="hidden" name="form-name" value="enquire" />
         <input type="hidden" name="lead_source" value="TikTok" />
+        <!-- TikTok attribution — filled client-side by /tt-lead.js, sent to the Events API server-side -->
+        <input type="hidden" name="tt_event_id" value="" />
+        <input type="hidden" name="ttclid" value="" />
+        <input type="hidden" name="ttp" value="" />
         <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
 
         <div class="form-grid">
@@ -139,5 +143,6 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
   </main>
 
   <script src="/lead-form.js"></script>
+  <script src="/tt-lead.js"></script>
 </body>
 </html>
