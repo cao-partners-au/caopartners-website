@@ -492,6 +492,11 @@ exports.handler = async (event) => {
         rep_name:     rep ? rep.name : null,
         state:        fields.state || null,
         notes:        fields.message || null,
+        // Acquisition channel. The base /hire/form/ page sends no lead_source (stays null,
+        // unchanged); the /hire/form/tt clone posts a hidden lead_source="TikTok" so TikTok
+        // campaign leads are attributable in the CRM (Reports > Leads).
+        lead_source:        fields.lead_source || null,
+        lead_source_detail: fields.lead_source_detail || null,
         created_at:   isoNow,
         updated_at:   isoNow,
       });
@@ -499,7 +504,9 @@ exports.handler = async (event) => {
       // Fire the server-side Meta Lead event only on a real new insert (not the dedup-skip
       // path above), so the event count stays honest. Awaited because the serverless
       // instance can freeze after we return; isolated so it can never break the redirect.
-      if (ok) await sendMetaLeadEvent(event, fields, "enquire");
+      // TikTok leads (/hire/form/tt) are excluded so they never enter the Meta pixel dataset —
+      // that page also omits the client-side Meta pixel, keeping the channels fully separate.
+      if (ok && fields.lead_source !== "TikTok") await sendMetaLeadEvent(event, fields, "enquire");
       return REDIRECT;
     }
 

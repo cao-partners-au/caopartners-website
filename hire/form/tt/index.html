@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hire a Chief Agent Officer | CAO Partners</title>
+<meta name="description" content="Tell CAO Partners about your business and start a Chief Agent Officer search." />
+<meta property="og:title" content="Hire a Chief Agent Officer | CAO Partners" />
+<meta property="og:description" content="Tell CAO Partners about your business and start a Chief Agent Officer search." />
+<meta property="og:image" content="/assets/social-cover.png" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/favicon.svg" />
+<link rel="mask-icon" href="/favicon.svg" color="#1269ff" />
+
+<!-- Google tag -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18020152935"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-18020152935');
+</script>
+
+<!-- Meta Pixel intentionally omitted on the TikTok landing page (/hire/form/tt) so TikTok
+     traffic does not enter creator army's shared Meta pixel dataset. The TikTok pixel is
+     added here separately once the pixel ID is available. -->
+
+<link rel="stylesheet" href="/styles.css" />
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body class="form-page hire-form-page">
+  <header class="form-page-nav">
+    <a href="/hire/tt" class="logo" aria-label="CAO Partners hire page">
+      <img class="logo-svg" src="/logo.svg" alt="CAO Partners" />
+    </a>
+    <a class="form-page-back" href="/hire/tt">Back to hiring page</a>
+  </header>
+
+  <main class="form-page-shell hire-form-shell">
+    <div class="form-page-copy">
+      <p class="form-page-kicker">Hire a CAO</p>
+      <h1>Start your Chief Agent Officer search.</h1>
+      <p class="form-page-intro">Tell us where AI should create leverage first, and we will be in touch to run a discovery call, then match you to the right operator.</p>
+
+      <div class="form-page-steps" aria-label="What happens next">
+        <div class="form-page-step">
+          <span>01</span>
+          <p>We call you to run a discovery call and map your business.</p>
+        </div>
+        <div class="form-page-step">
+          <span>02</span>
+          <p>We search our assessed talent pool and match candidates to your brief.</p>
+        </div>
+        <div class="form-page-step">
+          <span>03</span>
+          <p>We present your shortlist, vetted operators matched to your brief, ready to interview.</p>
+        </div>
+      </div>
+    </div>
+
+    <section class="form-panel" aria-labelledby="hire-form-title">
+      <h2 id="hire-form-title" class="sr-only">Hire a Chief Agent Officer enquiry form</h2>
+      <form name="enquire" method="POST" action="/.netlify/functions/form-submit" enctype="multipart/form-data">
+        <input type="hidden" name="form-name" value="enquire" />
+        <input type="hidden" name="lead_source" value="TikTok" />
+        <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="h-first">First name</label>
+            <input id="h-first" name="first_name" type="text" required placeholder="Jane" />
+          </div>
+          <div class="field">
+            <label for="h-last">Last name</label>
+            <input id="h-last" name="last_name" type="text" required placeholder="Smith" />
+          </div>
+          <div class="field">
+            <label for="h-email">Work email</label>
+            <input id="h-email" name="email" type="email" required placeholder="jane@company.com.au" />
+          </div>
+          <div class="field">
+            <label for="h-phone">Phone</label>
+            <input id="h-phone" name="phone" type="tel" placeholder="+61 4xx xxx xxx" />
+          </div>
+          <div class="field full">
+            <label for="h-company">Company</label>
+            <input id="h-company" name="company" type="text" required placeholder="Acme Corporation" />
+          </div>
+          <div class="field">
+            <label for="h-size">Company size</label>
+            <select id="h-size" name="company_size">
+              <option value="">Select</option>
+              <option>1-10</option>
+              <option>11-50</option>
+              <option>51-200</option>
+              <option>201-500</option>
+              <option>500+</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="h-state">State</label>
+            <select id="h-state" name="state" required>
+              <option value="" disabled selected>Select</option>
+              <option value="QLD">QLD</option>
+              <option value="NSW">NSW</option>
+              <option value="VIC">VIC</option>
+              <option value="WA">WA</option>
+              <option value="SA">SA</option>
+              <option value="ACT">ACT</option>
+              <option value="TAS">TAS</option>
+              <option value="NT">NT</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="h-message">What should this person solve first?</label>
+            <textarea id="h-message" name="message" placeholder="Example: sales follow-up, finance reconciliation, support triage, internal reporting..."></textarea>
+          </div>
+        </div>
+
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAADtKnNe0yx34yJOq" style="margin-bottom:16px;"></div>
+        <button class="btn btn-primary" type="submit">Send enquiry</button>
+      </form>
+      <p class="form-page-note">No retainers. No consulting scope. One operator employed by your business.</p>
+    </section>
+  </main>
+
+  <script src="/lead-form.js"></script>
+</body>
+</html>
