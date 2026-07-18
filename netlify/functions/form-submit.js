@@ -22,6 +22,12 @@ const META_CAPI_TOKEN      = process.env.META_CAPI_ACCESS_TOKEN;
 const META_TEST_EVENT_CODE = process.env.META_TEST_EVENT_CODE;
 const META_API_VERSION     = "v21.0"; // bump ~yearly before Meta deprecates it
 
+// TikTok Events API (server-side Lead event for the /hire/form/tt TikTok funnel only).
+// Pixel ID is non-secret (it's in the /tt page HTML); the access token is a secret and
+// lives in the TIKTOK_EVENTS_API_TOKEN env var (never committed).
+const TIKTOK_PIXEL_ID      = "D9DJ3TJC77U9058HLMCG";
+const TIKTOK_EAPI_TOKEN    = process.env.TIKTOK_EVENTS_API_TOKEN;
+
 const BPS_REPS = [
   { email: "gulliver@caopartners.com.au", name: "Gulliver Burns" },
   { email: "jonathan@caopartners.com.au", name: "Jonathan Ngo" },
@@ -396,6 +402,74 @@ function nowAEST() {
   ].join(":");
 }
 
+// Server-side TikTok Lead event via the Events API. Mirrors sendMetaLeadEvent, but for the
+// /hire/form/tt funnel. Shares the browser event's event_id (posted as fields.tt_event_id) so
+// the pixel Lead and this server Lead deduplicate. Isolated + best-effort: never breaks the
+// redirect. Fires ONLY on a real new insert (ok=true) so the server count stays honest.
+async function sendTikTokLeadEvent(event, fields) {
+  if (!TIKTOK_EAPI_TOKEN) {
+    console.warn("[tiktok-eapi] token not set — skipping Lead event");
+    return;
+  }
+  try {
+    const headers = event.headers || {};
+    const clientIp = headers["x-nf-client-connection-ip"]
+      || (headers["x-forwarded-for"] || "").split(",")[0].trim()
+      || undefined;
+    const userAgent = headers["user-agent"] || headers["User-Agent"] || undefined;
+
+    // Match keys. email/phone/external_id must be SHA-256; phone in E.164 first (normalisePhone
+    // already returns +61…). ttclid/ttp/ip/user_agent are sent raw, per TikTok's spec.
+    const user = {};
+    const em = hashPii(fields.email);          if (em) { user.email = em; user.external_id = em; }
+    const e164 = normalisePhone(fields.phone); if (e164) user.phone = sha256(e164);
+    if (fields.ttclid) user.ttclid = fields.ttclid;
+    if (fields.ttp)    user.ttp = fields.ttp;
+    if (clientIp)  user.ip = clientIp;
+    if (userAgent) user.user_agent = userAgent;
+
+    const eventId = fields.tt_event_id || randomUUID();
+    const payload = {
+      event_source:    "web",
+      event_source_id: TIKTOK_PIXEL_ID,
+      data: [{
+        event:      "Lead",
+        event_time: Math.floor(Date.now() / 1000),
+        event_id:   eventId,
+        user,
+        page:       { url: headers["referer"] || headers["Referer"] || "https://caopartners.com.au/hire/form/tt/" },
+        properties: { contents: [{ content_name: "Hire a CAO" }] },
+      }],
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    let res;
+    try {
+      res = await fetch("https://business-api.tiktok.com/open_api/v1.3/event/track/", {
+        method:  "POST",
+        headers: { "Access-Token": TIKTOK_EAPI_TOKEN, "Content-Type": "application/json" },
+        body:    JSON.stringify(payload),
+        signal:  controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const text = await res.text();
+    let parsed = {};
+    try { parsed = JSON.parse(text); } catch (e) {}
+    // TikTok returns { "code": 0, "message": "OK", ... } on success.
+    if (!res.ok || parsed.code !== 0) {
+      console.error(`[tiktok-eapi] Lead failed (${res.status}) code=${parsed.code} msg=${parsed.message} event_id=${eventId}`);
+    } else {
+      console.log(`[tiktok-eapi] Lead OK event_id=${eventId}`);
+    }
+  } catch (err) {
+    console.error("[tiktok-eapi] Lead error (ignored):", err.message);
+  }
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -504,9 +578,11 @@ exports.handler = async (event) => {
       // Fire the server-side Meta Lead event only on a real new insert (not the dedup-skip
       // path above), so the event count stays honest. Awaited because the serverless
       // instance can freeze after we return; isolated so it can never break the redirect.
-      // TikTok leads (/hire/form/tt) are excluded so they never enter the Meta pixel dataset —
-      // that page also omits the client-side Meta pixel, keeping the channels fully separate.
-      if (ok && fields.lead_source !== "TikTok") await sendMetaLeadEvent(event, fields, "enquire");
+      // Channel-exclusive conversion events, so the two datasets never mix:
+      //   TikTok leads -> TikTok Events API (dedupes with the /tt page's browser Lead)
+      //   everything else -> Meta CAPI (creator army's funnel, unchanged)
+      if (ok && fields.lead_source === "TikTok") await sendTikTokLeadEvent(event, fields);
+      else if (ok)                               await sendMetaLeadEvent(event, fields, "enquire");
       return REDIRECT;
     }
 
