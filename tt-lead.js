@@ -33,7 +33,16 @@
   var m = window.location.search.match(/[?&]ttclid=([^&]+)/);
   if (m) setCookie('cao_ttclid', decodeURIComponent(m[1]));
 
-  // 2. Form submit handler (only the form page has a form).
+  // 2. Fire ViewContent on every /tt page view (hub + form) as a mid-funnel
+  //    signal the algorithm can optimise on before the rarer Lead conversion.
+  //    Browser-only: no server-side ViewContent, so no event_id dedup needed.
+  try {
+    if (window.ttq) {
+      ttq.track('ViewContent', { contents: [{ content_name: 'Hire a CAO' }] });
+    }
+  } catch (e) {}
+
+  // 3. Form submit handler (only the form page has a form).
   var form = document.querySelector('form[name="enquire"]');
   if (!form) return;
 
