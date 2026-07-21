@@ -499,10 +499,16 @@ exports.handler = async (event) => {
       return REDIRECT;
     }
     // Turnstile (real CAPTCHA gate). Runs only when the secret is configured.
-    const tsFail = await turnstileReason(fields, event);
-    if (tsFail) {
-      console.log(`[form-submit] SPAM blocked (${tsFail}) email="${fields.email}" name="${name}"`);
-      return REDIRECT;
+    // Skipped for the TikTok funnel: TikTok's in-app browser (webview) frequently
+    // can't complete Turnstile, so the gate was silently rejecting every TikTok
+    // lead (paid traffic but 0 conversions). The honeypot/spam gate above still
+    // applies, so these submissions aren't unprotected.
+    if (fields.lead_source !== "TikTok") {
+      const tsFail = await turnstileReason(fields, event);
+      if (tsFail) {
+        console.log(`[form-submit] SPAM blocked (${tsFail}) email="${fields.email}" name="${name}"`);
+        return REDIRECT;
+      }
     }
 
     if (formName === "talent") {
