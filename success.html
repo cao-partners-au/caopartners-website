@@ -5,6 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Thank You | CAO Partners</title>
   <meta http-equiv="refresh" content="3;url=/" />
+
+  <!-- Google tag (AW-18020152935 — CAO Partners' own Google Ads account 858-690-4380) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18020152935"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-18020152935');
+
+    // Google Ads conversion. This is the ONLY page every successful submission lands on
+    // (netlify/functions/form-submit.js redirects here with ?t=enquire|talent on a real
+    // insert only), so it is the correct and only place to fire the conversion.
+    // Labels come from Google Ads > Goals > Conversions > <action> > See event snippet.
+    var CONVERSION_LABELS = {
+      enquire: 'uunuCK-l2YkcEOfs1pBD',   // "Submit lead form"
+      talent:  null,                     // TODO: create a candidate-application conversion
+                                         // action in Google Ads and paste its label here.
+    };
+    try {
+      var t = new URLSearchParams(window.location.search).get('t');
+      var label = t && CONVERSION_LABELS[t];
+      if (label) {
+        gtag('event', 'conversion', {
+          'send_to': 'AW-18020152935/' + label,
+          'value': 1.0,
+          'currency': 'AUD'
+        });
+      }
+    } catch (e) {}
+  </script>
+
   <!-- Meta Pixel Code -->
   <script>
   !function(f,b,e,v,n,t,s)

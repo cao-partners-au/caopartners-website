@@ -562,6 +562,14 @@ exports.handler = async (event) => {
   }
 
   const REDIRECT = { statusCode: 302, headers: { Location: "/success.html" }, body: "" };
+  // Success redirect tagged with the form type so /success.html can fire the matching
+  // Google Ads conversion. Used ONLY on a real insert — spam/dedup/unknown/crash paths keep
+  // the plain REDIRECT above, so they can never be counted as a conversion.
+  const redirectTo = (t) => ({
+    statusCode: 302,
+    headers: { Location: `/success.html?t=${t}` },
+    body: "",
+  });
 
   try {
     const { fields, fileBuffer, fileName, fileMime } = await parseMultipart(event);
@@ -634,7 +642,7 @@ exports.handler = async (event) => {
       // Awaited (serverless can freeze after return) and isolated so it can never break
       // the redirect. Shares event_id with the client pixel for dedup.
       if (ok) await sendMetaLeadEvent(event, fields, "talent");
-      return REDIRECT;
+      return ok ? redirectTo("talent") : REDIRECT;
     }
 
     if (formName === "enquire") {
@@ -676,7 +684,7 @@ exports.handler = async (event) => {
       if (ok && fields.lead_source === "TikTok")        await sendTikTokLeadEvent(event, fields);
       else if (ok && fields.lead_source === "Meta-CAO") await sendCaoMetaLeadEvent(event, fields, "enquire");
       else if (ok)                                      await sendMetaLeadEvent(event, fields, "enquire");
-      return REDIRECT;
+      return ok ? redirectTo("enquire") : REDIRECT;
     }
 
     // Unknown form - log field keys to diagnose
