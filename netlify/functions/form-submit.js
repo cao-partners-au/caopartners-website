@@ -31,6 +31,13 @@ const TIKTOK_EAPI_TOKEN    = process.env.TIKTOK_EVENTS_API_TOKEN;
 // -> Test Events for verification. Leave unset for live counting. (Same pattern as Meta.)
 const TIKTOK_TEST_CODE     = process.env.TIKTOK_TEST_EVENT_CODE;
 
+// CAO IN-HOUSE Meta pixel (server-side Lead for the /hire/form/cao funnel ONLY — kept separate
+// from creator army's Meta pixel above so the two datasets never mix). Pixel ID is non-secret
+// (it's in the /cao page HTML); the token is secret and lives in META_CAO_CAPI_TOKEN.
+const META_CAO_PIXEL_ID    = "1656519126480896";
+const META_CAO_CAPI_TOKEN  = process.env.META_CAO_CAPI_TOKEN;
+const META_CAO_TEST_CODE   = process.env.META_CAO_TEST_EVENT_CODE;
+
 const BPS_REPS = [
   { email: "gulliver@caopartners.com.au", name: "Gulliver Burns" },
   { email: "jonathan@caopartners.com.au", name: "Jonathan Ngo" },
@@ -392,6 +399,80 @@ async function sendMetaLeadEvent(event, fields, leadType) {
   }
 }
 
+// Server-side Lead for the CAO IN-HOUSE Meta pixel (/hire/form/cao funnel ONLY). Same shape as
+// sendMetaLeadEvent, but posts to the CAO dataset (1656519126480896) with META_CAO_CAPI_TOKEN,
+// so creator army's Meta dataset never sees these leads. Shares the browser event's event_id
+// (fields.fb_event_id, set by /lead-form.js) so the pixel Lead and this server Lead dedupe.
+// Best-effort + isolated; never blocks the redirect. Fires only on a real new insert.
+async function sendCaoMetaLeadEvent(event, fields, leadType) {
+  if (!META_CAO_CAPI_TOKEN) {
+    console.warn("[meta-cao-capi] token not set — skipping Lead event");
+    return;
+  }
+  try {
+    const headers = event.headers || {};
+    const clientIp = headers["x-nf-client-connection-ip"]
+      || (headers["x-forwarded-for"] || "").split(",")[0].trim()
+      || undefined;
+    const userAgent = headers["user-agent"] || headers["User-Agent"] || undefined;
+
+    const userData = { country: sha256("au") };
+    const em = hashPii(fields.email);       if (em) userData.em = em;
+    const phone = metaPhoneDigits(fields.phone); if (phone) userData.ph = sha256(phone);
+    const fn = hashPii(fields.first_name);  if (fn) userData.fn = fn;
+    const ln = hashPii(fields.last_name);   if (ln) userData.ln = ln;
+    const st = hashPii(fields.state);       if (st) userData.st = st;
+    if (fields.fb_fbp) userData.fbp = fields.fb_fbp;
+    if (fields.fb_fbc) userData.fbc = fields.fb_fbc;
+    if (clientIp)  userData.client_ip_address = clientIp;
+    if (userAgent) userData.client_user_agent = userAgent;
+
+    const eventId = fields.fb_event_id || randomUUID();
+    const payload = {
+      data: [{
+        event_name:       "Lead",
+        event_time:       Math.floor(Date.now() / 1000),
+        event_id:         eventId,
+        action_source:    "website",
+        event_source_url: fields.fb_source_url || headers["referer"] || headers["Referer"] || undefined,
+        user_data:        userData,
+        custom_data:      { lead_type: leadType || "enquire" },
+      }],
+    };
+    if (META_CAO_TEST_CODE) payload.test_event_code = META_CAO_TEST_CODE;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+    let res;
+    try {
+      res = await fetch(
+        `https://graph.facebook.com/${META_API_VERSION}/${META_CAO_PIXEL_ID}/events?access_token=${encodeURIComponent(META_CAO_CAPI_TOKEN)}`,
+        {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify(payload),
+          signal:  controller.signal,
+        }
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const text = await res.text();
+    let parsed = {};
+    try { parsed = JSON.parse(text); } catch (e) {}
+    const trace = parsed.fbtrace_id || "";
+    if (!res.ok) {
+      const msg = parsed.error ? parsed.error.message : text;
+      console.error(`[meta-cao-capi] Lead failed (${res.status}) event_id=${eventId} fbtrace_id=${trace} err=${msg}`);
+    } else {
+      console.log(`[meta-cao-capi] Lead OK events_received=${parsed.events_received} event_id=${eventId} fbtrace_id=${trace}`);
+    }
+  } catch (err) {
+    console.error("[meta-cao-capi] Lead error (ignored):", err.message);
+  }
+}
+
 function nowAEST() {
   const d    = new Date();
   const aest = new Date(d.getTime() + 10 * 60 * 60 * 1000);
@@ -499,11 +580,11 @@ exports.handler = async (event) => {
       return REDIRECT;
     }
     // Turnstile (real CAPTCHA gate). Runs only when the secret is configured.
-    // Skipped for the TikTok funnel: TikTok's in-app browser (webview) frequently
-    // can't complete Turnstile, so the gate was silently rejecting every TikTok
-    // lead (paid traffic but 0 conversions). The honeypot/spam gate above still
-    // applies, so these submissions aren't unprotected.
-    if (fields.lead_source !== "TikTok") {
+    // Skipped for the in-app-browser ad funnels (TikTok + CAO in-house Meta): those
+    // webviews frequently can't complete Turnstile, so the gate silently rejects every
+    // lead (paid traffic but 0 conversions — proven on TikTok 21 Jul). The honeypot/spam
+    // gate above still applies, so these submissions aren't unprotected.
+    if (fields.lead_source !== "TikTok" && fields.lead_source !== "Meta-CAO") {
       const tsFail = await turnstileReason(fields, event);
       if (tsFail) {
         console.log(`[form-submit] SPAM blocked (${tsFail}) email="${fields.email}" name="${name}"`);
@@ -588,11 +669,13 @@ exports.handler = async (event) => {
       // Fire the server-side Meta Lead event only on a real new insert (not the dedup-skip
       // path above), so the event count stays honest. Awaited because the serverless
       // instance can freeze after we return; isolated so it can never break the redirect.
-      // Channel-exclusive conversion events, so the two datasets never mix:
-      //   TikTok leads -> TikTok Events API (dedupes with the /tt page's browser Lead)
+      // Channel-exclusive conversion events, so the datasets never mix:
+      //   TikTok leads   -> TikTok Events API (dedupes with the /tt page's browser Lead)
+      //   Meta-CAO leads -> CAO in-house Meta CAPI (dedupes with the /cao page's browser Lead)
       //   everything else -> Meta CAPI (creator army's funnel, unchanged)
-      if (ok && fields.lead_source === "TikTok") await sendTikTokLeadEvent(event, fields);
-      else if (ok)                               await sendMetaLeadEvent(event, fields, "enquire");
+      if (ok && fields.lead_source === "TikTok")        await sendTikTokLeadEvent(event, fields);
+      else if (ok && fields.lead_source === "Meta-CAO") await sendCaoMetaLeadEvent(event, fields, "enquire");
+      else if (ok)                                      await sendMetaLeadEvent(event, fields, "enquire");
       return REDIRECT;
     }
 
