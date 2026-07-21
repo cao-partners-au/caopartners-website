@@ -20,6 +20,24 @@
     return match ? match.pop() : '';
   }
 
+  /* ── Organic landing-page attribution ────────────────────────────────────
+     SEO landing pages link to the standard form with ?src=<page-slug>. We stash
+     the slug in a cookie on the landing page so it survives the hop to the form,
+     then stamp it onto the submission. Deliberately NOT a cloned form/pixel: the
+     sealed funnels exist to isolate PAID datasets, and organic traffic trains no
+     algorithm — so a query param plus CRM attribution is all this needs.
+     Never overrides a hardcoded lead_source (the /tt and /cao ad funnels). */
+  var SRC_COOKIE = 'cao_src';
+
+  function stashSrc() {
+    try {
+      var m = window.location.search.match(/[?&]src=([A-Za-z0-9_-]{1,64})(?:&|$)/);
+      if (!m) return;
+      document.cookie = SRC_COOKIE + '=' + m[1] + ';path=/;max-age=2592000;samesite=lax';
+    } catch (e) {}
+  }
+  stashSrc();
+
   function genId() {
     try {
       if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -46,6 +64,15 @@
       setField('fb_fbp', readCookie('_fbp'));
       setField('fb_fbc', deriveFbc(readCookie('_fbc')));
       setField('fb_source_url', window.location.href);
+
+      // Stamp organic attribution only when the page hasn't already declared a
+      // channel (the sealed TikTok / Meta-CAO forms hardcode lead_source).
+      var srcField = form.querySelector('input[name="lead_source"]');
+      var src = readCookie(SRC_COOKIE);
+      if (srcField && !srcField.value && src) {
+        srcField.value = 'Organic';
+        setField('lead_source_detail', src);
+      }
 
       try {
         if (window.fbq) {

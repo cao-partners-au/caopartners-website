@@ -73,6 +73,11 @@ fbq('track', 'PageView');
         <input type="hidden" name="fb_fbp" value="" />
         <input type="hidden" name="fb_fbc" value="" />
         <input type="hidden" name="fb_source_url" value="" />
+        <!-- Left empty: /lead-form.js fills these from the ?src= cookie when the visitor
+             arrived via an SEO landing page. The sealed ad funnels (/hire/form/tt,
+             /hire/form/cao) hardcode lead_source instead and are never overridden. -->
+        <input type="hidden" name="lead_source" value="" />
+        <input type="hidden" name="lead_source_detail" value="" />
         <p class="honey"><label>Don't fill this out: <input name="bot-field" /></label></p>
 
         <div class="form-grid">
