@@ -1,27 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Canonical host is the APEX (caopartners.com.au) — www 301s to it, so list apex URLs here.
+  Deliberately EXCLUDED:
+    /hire/form, /become/form         - conversion forms, no search value
+    /hire/tt, /hire/form/tt          - sealed TikTok ad funnel (near-duplicate of /hire)
+    /hire/cao, /hire/form/cao        - sealed in-house Meta ad funnel (near-duplicate of /hire)
+    /success, /application-submitted - thank-you pages
+  The sealed ad funnels are paid-traffic-only clones; indexing them would create duplicate
+  content competing with /hire for the same terms.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.caopartners.com.au/</loc>
-    <lastmod>2026-03-16</lastmod>
+    <loc>https://caopartners.com.au/</loc>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.caopartners.com.au/blog/</loc>
-    <lastmod>2026-03-16</lastmod>
+    <loc>https://caopartners.com.au/hire</loc>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.caopartners.com.au/blog/what-is-a-chief-agent-officer</loc>
-    <lastmod>2026-03-16</lastmod>
-    <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.caopartners.com.au/blog/why-every-enterprise-needs-a-cao</loc>
-    <lastmod>2026-03-16</lastmod>
+    <loc>https://caopartners.com.au/join-our-team</loc>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://caopartners.com.au/blog/</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://caopartners.com.au/blog/what-is-a-chief-agent-officer</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://caopartners.com.au/blog/why-every-enterprise-needs-a-cao</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

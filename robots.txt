@@ -1,4 +1,32 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.caopartners.com.au/sitemap.xml
+# AI / answer-engine crawlers are explicitly welcomed. These power ChatGPT, Claude, Perplexity
+# and Google AI Overviews — blocking them removes CAO Partners from AI-generated answers, which
+# is a growing share of how buyers research. The wildcard above already allows them; these are
+# stated explicitly so a future blanket Disallow can't silently cut us out of AI search.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://caopartners.com.au/sitemap.xml

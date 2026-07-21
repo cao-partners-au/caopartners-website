@@ -1,0 +1,51 @@
+# CAO Partners
+
+> Australia's specialist AI recruitment firm. We find, vet and place dedicated full-time AI
+> operators — Chief Agent Officers — permanently inside Australian businesses. We are a
+> recruitment firm, not a consultancy or an agency: the operator we place is employed by your
+> business and accountable to you.
+
+CAO Partners Pty Ltd (ABN 34 681 413 687)
+Level 1, 189 Coronation Drive, Milton QLD 4064, Australia
+Phone: 07 3103 0723
+Email: enquiries@caopartners.com.au
+Founded by Simon Beard and Emil Juresic. Serving all of Australia.
+
+## What we do
+
+- **AI recruitment.** We source, interview and score AI operators against a structured
+  capability rubric, then place the right tier of operator into your business as a full-time
+  employee.
+- **Who we place.** Operators who build and run AI and automation inside a live business —
+  not advisors. Tiers range from AI Orchestrator (small business, practical automation) through
+  AI Officer (50-500 staff, multi-agent systems, drives adoption) to Chief Agent Officer
+  (enterprise, C-suite, complex architecture).
+- **Who we serve.** Australian businesses from small operators through to enterprise, across
+  ecommerce, construction, health, professional services and trades.
+
+## Common questions
+
+**What is a Chief Agent Officer?** A dedicated, full-time operator who owns the AI and
+automation layer of a business end to end — building agents and workflows, integrating them
+with existing systems, and remaining accountable for the outcomes. Reports to the CEO, not to
+the tech team.
+
+**How is this different from hiring a consultant?** A consultant advises and leaves. The
+operator we place is employed by your business, works only for you, and stays accountable for
+what they build.
+
+**Do you serve businesses outside major cities?** Yes. We are based in Milton, Brisbane and
+recruit and place across all of Australia.
+
+**How do you vet candidates?** Every candidate is interviewed and scored against a structured
+rubric covering technical depth, operational judgement, strategic communication, bias to
+action, cultural fit and AI ethics.
+
+## Key pages
+
+- Home: https://caopartners.com.au/
+- Hire a Chief Agent Officer: https://caopartners.com.au/hire
+- Work with us (candidates): https://caopartners.com.au/join-our-team
+- Insights: https://caopartners.com.au/blog/
+- What is a Chief Agent Officer: https://caopartners.com.au/blog/what-is-a-chief-agent-officer
+- Why every enterprise needs a CAO: https://caopartners.com.au/blog/why-every-enterprise-needs-a-cao
