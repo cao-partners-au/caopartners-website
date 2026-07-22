@@ -19,9 +19,12 @@
     // insert only), so it is the correct and only place to fire the conversion.
     // Labels come from Google Ads > Goals > Conversions > <action> > See event snippet.
     var CONVERSION_LABELS = {
-      enquire: 'uunuCK-l2YkcEOfs1pBD',   // "Submit lead form"
-      talent:  null,                     // TODO: create a candidate-application conversion
-                                         // action in Google Ads and paste its label here.
+      enquire: 'uunuCK-l2YkcEOfs1pBD',   // "Submit lead form"  — client enquiry (primary)
+      talent:  'qnhhCO78wNQcEOfs1pBD',   // "Candidate Application" — SECONDARY in Google Ads,
+                                         // deliberately not used for bidding: candidates are
+                                         // far cheaper to acquire than client leads, so
+                                         // optimising for both would drag spend to the wrong
+                                         // audience.
     };
     try {
       var t = new URLSearchParams(window.location.search).get('t');
