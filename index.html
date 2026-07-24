@@ -998,11 +998,14 @@ void main() {
     });
   });
 
-  // Meta CAPI dual-send: on both the enquire (hire) and talent (candidate) forms, fire
-  // the client-side Lead pixel AND hand the server a shared event_id + the browser's
-  // fbp/fbc so form-submit.js can send a deduplicated server-side Lead event. Fires at
-  // submit time (pre-navigation) for reliability; Meta dedupes the client + server pair
-  // on the shared event_id.
+  // Meta CAPI: hand the server a shared event_id + the browser's fbp/fbc so
+  // form-submit.js can send a server-side Lead event. Fires at submit time
+  // (pre-navigation) for reliability. No client-side fbq('track','Lead') here on
+  // purpose: it used to fire on every click, before the server validated the
+  // submission, so spam/duplicate/rejected attempts were counted as Leads in Meta
+  // even though they never reached the CRM. CAPI now fires the sole Lead event,
+  // gated on a real DB insert, and already carries strong PII match keys (hashed
+  // email/phone) — no browser pixel needed for match quality.
   (function () {
     function readCookie(name) {
       var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
@@ -1019,7 +1022,6 @@ void main() {
       return m ? 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]) : '';
     }
     document.querySelectorAll('form[name="enquire"], form[name="talent"]').forEach(function (form) {
-      var contentName = form.getAttribute('name') === 'talent' ? 'talent' : 'enquire';
       form.addEventListener('submit', function () {
         var eventId = genId();
         var setField = function (name, val) {
@@ -1030,11 +1032,6 @@ void main() {
         setField('fb_fbp', readCookie('_fbp'));
         setField('fb_fbc', deriveFbc(readCookie('_fbc')));
         setField('fb_source_url', window.location.href);
-        try {
-          if (window.fbq) {
-            fbq('track', 'Lead', { content_name: contentName }, { eventID: eventId });
-          }
-        } catch (e) {}
       });
     });
   })();

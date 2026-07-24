@@ -69,7 +69,6 @@
   }
 
   forms.forEach(function (form) {
-    var contentName = form.getAttribute('name') === 'talent' ? 'talent' : 'enquire';
     form.addEventListener('submit', function () {
       var eventId = genId();
       var setField = function (name, value) {
@@ -91,11 +90,12 @@
         setField('lead_source_detail', src);
       }
 
-      try {
-        if (window.fbq) {
-          fbq('track', 'Lead', { content_name: contentName }, { eventID: eventId });
-        }
-      } catch (e) {}
+      // No client-side fbq('track','Lead') here on purpose: it used to fire on every
+      // click, before the server validated the submission, so spam/duplicate/rejected
+      // attempts were counted as Leads in Meta even though they never reached the CRM.
+      // CAPI (form-submit.js) now fires the sole Lead event, gated on a real DB insert,
+      // and already carries strong PII match keys (hashed email/phone) — no browser
+      // pixel needed for match quality.
     });
   });
 })();
