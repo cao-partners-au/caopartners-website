@@ -5,7 +5,7 @@
     /hire/form, /become/form         - conversion forms, no search value
     /hire/tt, /hire/form/tt          - sealed TikTok ad funnel (near-duplicate of /hire)
     /hire/cao, /hire/form/cao        - sealed in-house Meta ad funnel (near-duplicate of /hire)
-    /success, /application-submitted - thank-you pages
+    /success                         - thank-you page
   The sealed ad funnels are paid-traffic-only clones; indexing them would create duplicate
   content competing with /hire for the same terms.
 -->
