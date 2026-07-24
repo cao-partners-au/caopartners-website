@@ -577,6 +577,20 @@ exports.handler = async (event) => {
     const isoNow   = new Date().toISOString();
     const name     = `${(fields.first_name || "").trim()} ${(fields.last_name || "").trim()}`.trim();
 
+    // ── Source capture (diagnostic, added 24 Jul 2026) ──────────────────────────
+    // Synthetic submissions (Test User/test@example.com, Jane Smith/Acme/qq.com) were
+    // landing via /hire/form/tt with no ad-click attribution — most likely TikTok's own
+    // landing-page review bot. Capture the origin so the NEXT one is identifiable: a
+    // ByteDance/China IP confirms review-bot; anything else means real spam. Stashed into
+    // lead_source_detail ONLY when the funnel didn't already set it (organic keeps its
+    // page slug; TikTok/Meta leave it null, so they get the source). Remove once identified.
+    const h = event.headers || {};
+    const clientSrc =
+      `ip=${h["x-nf-client-connection-ip"] || (h["x-forwarded-for"] || "").split(",")[0].trim() || "?"}` +
+      ` ua=${(h["user-agent"] || "?").slice(0, 120)}` +
+      ` ref=${h["referer"] || h["referrer"] || "?"}`;
+    console.log(`[form-src] ${clientSrc} | form="${formName}" src="${fields.lead_source || ""}" email="${fields.email}"`);
+
     console.log(`[form-submit] form="${formName}" email="${fields.email}" keys=${Object.keys(fields).join(",")}`);
     console.log(`[form-submit] isBase64=${event.isBase64Encoded} bodyLen=${(event.body||"").length}`);
 
@@ -669,7 +683,9 @@ exports.handler = async (event) => {
         // unchanged); the /hire/form/tt clone posts a hidden lead_source="TikTok" so TikTok
         // campaign leads are attributable in the CRM (Reports > Leads).
         lead_source:        fields.lead_source || null,
-        lead_source_detail: fields.lead_source_detail || null,
+        // Keep the funnel's own detail (organic page slug); otherwise stash the captured
+        // source so a synthetic/bot submission reveals its origin in Supabase directly.
+        lead_source_detail: fields.lead_source_detail || clientSrc,
         created_at:   isoNow,
         updated_at:   isoNow,
       });
