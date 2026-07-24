@@ -682,7 +682,12 @@ exports.handler = async (event) => {
         // Acquisition channel. The base /hire/form/ page sends no lead_source (stays null,
         // unchanged); the /hire/form/tt clone posts a hidden lead_source="TikTok" so TikTok
         // campaign leads are attributable in the CRM (Reports > Leads).
-        lead_source:        fields.lead_source || null,
+        // Real, pixel-grounded Creator Army attribution: a base-site lead with no explicit
+        // channel that carries fb_fbc arrived via a Facebook/Instagram click. The base site
+        // runs CA's Meta pixel (942963975160100) and CA is the only paid Meta spend pointed
+        // at it, so credit them. No fb_fbc => genuinely direct/organic (stays null). Our own
+        // ad funnels (/tt, /cao) set lead_source explicitly and are unaffected.
+        lead_source:        fields.lead_source || (fields.fb_fbc ? "Creator Army" : null),
         // Keep the funnel's own detail (organic page slug); otherwise stash the captured
         // source so a synthetic/bot submission reveals its origin in Supabase directly.
         lead_source_detail: fields.lead_source_detail || clientSrc,
