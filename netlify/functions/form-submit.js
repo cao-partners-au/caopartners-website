@@ -70,6 +70,18 @@ function spamReason(fields) {
   return null;
 }
 
+// Social in-app browser (webview) detection. Facebook/Instagram/Messenger webviews
+// frequently CANNOT complete a Turnstile challenge, so the gate silently rejects the
+// submission server-side even though the browser pixel already fired a Lead — the lead
+// reaches Meta but never the CRM (this is exactly the base-funnel gap Creator Army flagged
+// for Tue 21 Jul, same failure already proven on the TikTok funnel). We skip Turnstile for
+// these UAs; the honeypot + disposable-domain gate above still applies, so they aren't
+// unprotected. Normal desktop/mobile browsers keep the full CAPTCHA.
+function isInAppBrowser(ua) {
+  const s = (ua || "").toLowerCase();
+  return /fban|fbav|fb_iab|fbios|fbdv|instagram|messenger|micromessenger|\bline\/|snapchat|pinterest|linkedinapp/.test(s);
+}
+
 // Cloudflare Turnstile (CAPTCHA) server-side verification. Returns null when OK — or
 // when no secret is configured in this deploy context (falls back to honeypot+blocklist
 // so non-prod contexts don't break). Returns a reason string when the token is missing
@@ -602,16 +614,21 @@ exports.handler = async (event) => {
       return REDIRECT;
     }
     // Turnstile (real CAPTCHA gate). Runs only when the secret is configured.
-    // Skipped for the in-app-browser ad funnels (TikTok + CAO in-house Meta): those
-    // webviews frequently can't complete Turnstile, so the gate silently rejects every
-    // lead (paid traffic but 0 conversions — proven on TikTok 21 Jul). The honeypot/spam
-    // gate above still applies, so these submissions aren't unprotected.
-    if (fields.lead_source !== "TikTok" && fields.lead_source !== "Meta-CAO") {
+    // Skipped for the in-app-browser ad funnels (TikTok + CAO in-house Meta) AND for any
+    // social webview (Facebook/Instagram/Messenger etc.): those can't complete Turnstile,
+    // so the gate silently rejects the lead server-side even though the browser pixel
+    // already fired — the lead reaches Meta but never the CRM. That is the Creator Army
+    // base-funnel gap (Tue 21 Jul: Meta 5, CRM 2). The honeypot + disposable-domain gate
+    // above still applies to these, so they aren't left unprotected.
+    const inAppUA = isInAppBrowser(h["user-agent"] || h["User-Agent"]);
+    if (fields.lead_source !== "TikTok" && fields.lead_source !== "Meta-CAO" && !inAppUA) {
       const tsFail = await turnstileReason(fields, event);
       if (tsFail) {
         console.log(`[form-submit] SPAM blocked (${tsFail}) email="${fields.email}" name="${name}"`);
         return REDIRECT;
       }
+    } else if (inAppUA) {
+      console.log(`[form-submit] in-app browser — skipping Turnstile (honeypot+domain still enforced) email="${fields.email}"`);
     }
 
     if (formName === "talent") {
