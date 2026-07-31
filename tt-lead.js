@@ -1,19 +1,33 @@
 /* CAO Partners — TikTok /tt funnel tracking.
  *
- * Loads only on the TikTok funnel pages (/hire/tt, /hire/form/tt). Two jobs:
+ * Loads on BOTH sealed TikTok funnels:
+ *   CLIENT    /hire/tt,   /hire/form/tt    -> form[name="enquire"], fires Lead
+ *   CANDIDATE /become/tt, /become/form/tt  -> form[name="talent"],  fires CompleteRegistration
+ *
+ * Two jobs:
  *   1. Persist the TikTok click id (ttclid) from the landing URL into a first-party
- *      cookie, so it survives a /hire/tt -> /hire/form/tt navigation and is still
- *      available at submit time for server-side Events API attribution.
- *   2. On the enquire form submit, generate one event_id, stamp it (+ ttclid + the
- *      _ttp cookie) into hidden fields for the server, and fire the browser Lead
- *      event with that SAME event_id so the pixel event and the server Events API
- *      event deduplicate. Mirrors how lead-form.js does it for Meta.
+ *      cookie, so it survives a hub -> form navigation and is still available at
+ *      submit time for server-side Events API attribution.
+ *   2. On form submit, generate one event_id, stamp it (+ ttclid + the _ttp cookie)
+ *      into hidden fields for the server, and fire the browser conversion event with
+ *      that SAME event_id so the pixel event and the server Events API event
+ *      deduplicate. Mirrors how lead-form.js does it for Meta.
+ *
+ * The two funnels fire DIFFERENT conversion events on the same pixel deliberately:
+ * each campaign then optimises on its own event, so the candidate campaign never
+ * trains on client enquiries (and vice versa).
  *
  * The base site's Meta pixel is intentionally NOT present on these pages, so this
  * only ever touches ttq — never fbq.
  */
 (function () {
   'use strict';
+
+  // Which funnel are we on? Path-based, so it also works on the hub pages where
+  // there is no form to inspect.
+  var IS_CANDIDATE = window.location.pathname.indexOf('/become/') === 0;
+  var CONTENT_NAME = IS_CANDIDATE ? 'Become a CAO' : 'Hire a CAO';
+  var CONVERSION_EVENT = IS_CANDIDATE ? 'CompleteRegistration' : 'Lead';
 
   function readCookie(name) {
     var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
@@ -34,16 +48,17 @@
   if (m) setCookie('cao_ttclid', decodeURIComponent(m[1]));
 
   // 2. Fire ViewContent on every /tt page view (hub + form) as a mid-funnel
-  //    signal the algorithm can optimise on before the rarer Lead conversion.
+  //    signal the algorithm can optimise on before the rarer conversion.
   //    Browser-only: no server-side ViewContent, so no event_id dedup needed.
   try {
     if (window.ttq) {
-      ttq.track('ViewContent', { contents: [{ content_name: 'Hire a CAO' }] });
+      ttq.track('ViewContent', { contents: [{ content_name: CONTENT_NAME }] });
     }
   } catch (e) {}
 
-  // 3. Form submit handler (only the form page has a form).
-  var form = document.querySelector('form[name="enquire"]');
+  // 3. Form submit handler (only the form page has a form). Matches whichever
+  //    funnel's form is present — enquire (client) or talent (candidate).
+  var form = document.querySelector('form[name="enquire"], form[name="talent"]');
   if (!form) return;
 
   form.addEventListener('submit', function () {
@@ -57,7 +72,7 @@
     set('ttp', readCookie('_ttp'));
     try {
       if (window.ttq) {
-        ttq.track('Lead', { contents: [{ content_name: 'Hire a CAO' }] }, { event_id: eventId });
+        ttq.track(CONVERSION_EVENT, { contents: [{ content_name: CONTENT_NAME }] }, { event_id: eventId });
       }
     } catch (e) {}
   });

@@ -502,9 +502,19 @@ function nowAEST() {
 // /hire/form/tt funnel. Shares the browser event's event_id (posted as fields.tt_event_id) so
 // the pixel Lead and this server Lead deduplicate. Isolated + best-effort: never breaks the
 // redirect. Fires ONLY on a real new insert (ok=true) so the server count stays honest.
-async function sendTikTokLeadEvent(event, fields) {
+// The two sealed TikTok funnels fire DIFFERENT conversion events on the same pixel,
+// so each campaign optimises on its own signal and the candidate campaign never
+// trains on client enquiries. Must stay in sync with /tt-lead.js, which fires the
+// browser-side twin of these events with the same event_id for deduplication.
+const TIKTOK_EVENTS = {
+  enquire: { event: "Lead",                 content: "Hire a CAO",   page: "https://caopartners.com.au/hire/form/tt/" },
+  talent:  { event: "CompleteRegistration", content: "Become a CAO", page: "https://caopartners.com.au/become/form/tt/" },
+};
+
+async function sendTikTokLeadEvent(event, fields, formType = "enquire") {
+  const cfg = TIKTOK_EVENTS[formType] || TIKTOK_EVENTS.enquire;
   if (!TIKTOK_EAPI_TOKEN) {
-    console.warn("[tiktok-eapi] token not set — skipping Lead event");
+    console.warn(`[tiktok-eapi] token not set — skipping ${cfg.event} event`);
     return;
   }
   try {
@@ -529,12 +539,12 @@ async function sendTikTokLeadEvent(event, fields) {
       event_source:    "web",
       event_source_id: TIKTOK_PIXEL_ID,
       data: [{
-        event:      "Lead",
+        event:      cfg.event,
         event_time: Math.floor(Date.now() / 1000),
         event_id:   eventId,
         user,
-        page:       { url: headers["referer"] || headers["Referer"] || "https://caopartners.com.au/hire/form/tt/" },
-        properties: { contents: [{ content_name: "Hire a CAO" }] },
+        page:       { url: headers["referer"] || headers["Referer"] || cfg.page },
+        properties: { contents: [{ content_name: cfg.content }] },
       }],
     };
     if (TIKTOK_TEST_CODE) payload.test_event_code = TIKTOK_TEST_CODE;
@@ -558,12 +568,12 @@ async function sendTikTokLeadEvent(event, fields) {
     try { parsed = JSON.parse(text); } catch (e) {}
     // TikTok returns { "code": 0, "message": "OK", ... } on success.
     if (!res.ok || parsed.code !== 0) {
-      console.error(`[tiktok-eapi] Lead failed (${res.status}) code=${parsed.code} msg=${parsed.message} event_id=${eventId}`);
+      console.error(`[tiktok-eapi] ${cfg.event} failed (${res.status}) code=${parsed.code} msg=${parsed.message} event_id=${eventId}`);
     } else {
-      console.log(`[tiktok-eapi] Lead OK event_id=${eventId}`);
+      console.log(`[tiktok-eapi] ${cfg.event} OK event_id=${eventId}`);
     }
   } catch (err) {
-    console.error("[tiktok-eapi] Lead error (ignored):", err.message);
+    console.error("[tiktok-eapi] event error (ignored):", err.message);
   }
 }
 
@@ -664,15 +674,24 @@ exports.handler = async (event) => {
         candidate_status:    "New",
         assigned_to:         tasEmail,
         tas_assigned:        tasEmail,
+        // Channel attribution, mirroring cao_Leads. Sealed funnels hardcode
+        // lead_source in a hidden field; the base /become form leaves it null,
+        // which reads as "Direct / Unattributed" — never as a specific channel.
+        lead_source:         fields.lead_source || null,
+        lead_source_detail:  fields.lead_source_detail || clientSrc,
         cv_url:              cvUrl || null,
         created_at:          isoNow,
         updated_at:          isoNow,
       });
       console.log(`[form-submit] talent write: ${ok ? "OK" : "FAILED"}`);
-      // Server-side Meta Lead event, only on a real new insert (not the dedup-skip path).
+      // Server-side conversion, only on a real new insert (not the dedup-skip path).
       // Awaited (serverless can freeze after return) and isolated so it can never break
       // the redirect. Shares event_id with the client pixel for dedup.
-      if (ok) await sendMetaLeadEvent(event, fields, "talent");
+      // Channel-exclusive, same shape as the enquire branch: a candidate arriving via
+      // the sealed TikTok funnel must NOT be reported into creator army's Meta pixel.
+      if (ok && fields.lead_source === "TikTok")        await sendTikTokLeadEvent(event, fields, "talent");
+      else if (ok && fields.lead_source === "Meta-CAO") await sendCaoMetaLeadEvent(event, fields, "talent");
+      else if (ok)                                      await sendMetaLeadEvent(event, fields, "talent");
       return ok ? redirectTo("talent") : REDIRECT;
     }
 
@@ -719,7 +738,7 @@ exports.handler = async (event) => {
       //   TikTok leads   -> TikTok Events API (dedupes with the /tt page's browser Lead)
       //   Meta-CAO leads -> CAO in-house Meta CAPI (dedupes with the /cao page's browser Lead)
       //   everything else -> Meta CAPI (creator army's funnel, unchanged)
-      if (ok && fields.lead_source === "TikTok")        await sendTikTokLeadEvent(event, fields);
+      if (ok && fields.lead_source === "TikTok")        await sendTikTokLeadEvent(event, fields, "enquire");
       else if (ok && fields.lead_source === "Meta-CAO") await sendCaoMetaLeadEvent(event, fields, "enquire");
       else if (ok)                                      await sendMetaLeadEvent(event, fields, "enquire");
       return ok ? redirectTo("enquire") : REDIRECT;
