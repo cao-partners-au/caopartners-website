@@ -713,6 +713,10 @@ exports.handler = async (event) => {
         deal_status:  "New Lead",
         assigned_to:  rep ? rep.email : null,
         rep_name:     rep ? rep.name : null,
+        // Round-robin intake assignment — powers the CRM Sales Hub source split.
+        // (Manual/batch reassigns in the CRM stamp "system" instead.)
+        assignment_source: rep ? "round_robin" : null,
+        assigned_at:       rep ? isoNow : null,
         state:        fields.state || null,
         notes:        fields.message || null,
         // Acquisition channel. The base /hire/form/ page sends no lead_source (stays null,
