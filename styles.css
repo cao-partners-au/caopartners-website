@@ -2055,3 +2055,129 @@ section { position: relative; }
   .section { padding: 60px 0; }
   .container { padding-inline: 20px; }
 }
+
+/* ============================================================
+   TESTIMONIALS
+   ============================================================ */
+.tst {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(12px, 3vw, 32px);
+  margin-top: 8px;
+}
+
+/* All slides occupy the SAME grid cell and crossfade. Stacking them this way
+   means the viewport is always as tall as the longest quote, so advancing never
+   jolts the page — a slider that changes height moves the content under the
+   reader's cursor mid-sentence. */
+.tst-viewport {
+  display: grid;
+  min-width: 0;
+  /* Height is set by JS to the ACTIVE slide and eased between the two. Sizing to
+     the tallest slide instead leaves ~150px of dead space under every short
+     quote; letting it snap per slide jolts the page. Animating splits the
+     difference. */
+  height: auto;
+  overflow: hidden;
+  transition: height .45s cubic-bezier(.4, 0, .2, 1);
+}
+.tst-slide {
+  grid-area: 1 / 1;
+  /* Without this every slide stretches to the grid row (i.e. the tallest slide),
+     so measuring one returns the height of the longest and the viewport never
+     resizes. Natural height per slide is what makes the animation work. */
+  align-self: start;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity .5s ease, transform .5s ease, visibility 0s linear .5s;
+}
+.tst-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity .5s ease, transform .5s ease, visibility 0s;
+}
+
+.tst-quote {
+  margin: 0;
+  border-left: 2px solid var(--blue);
+  padding: 6px 0 6px 24px;
+  font-size: clamp(17px, 1.55vw, 21px);
+  font-weight: 200;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  color: var(--t1);
+  text-wrap: pretty;
+}
+/* Ed's testimonial is two paragraphs; a span keeps it one quotable block for
+   screen readers while still breathing visually. */
+.tst-break { display: block; height: 18px; }
+
+.tst-by {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 22px 0 0 26px;
+}
+.tst-name { font-size: 15px; font-weight: 500; color: var(--t2); }
+.tst-org  { font-size: 13px; color: var(--t3); }
+.tst-org::before { content: "— "; color: var(--t4); }
+
+.tst-arrow {
+  flex: none;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--t3);
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.tst-arrow svg { width: 20px; height: 20px; }
+.tst-arrow:hover { color: var(--t1); border-color: var(--border-h); background: var(--hover); }
+.tst-arrow:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; color: var(--t1); }
+
+.tst-dots {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+}
+.tst-dot {
+  width: 7px; height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--t4);
+  cursor: pointer;
+  transition: background .25s ease, transform .25s ease;
+}
+.tst-dot:hover { background: var(--t3); }
+.tst-dot[aria-selected="true"] { background: var(--blue); transform: scale(1.35); }
+.tst-dot:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+/* On a phone the arrows would squeeze the quote to a column of single words, so
+   they move below it and sit either side of the dots. */
+@media (max-width: 720px) {
+  .tst { grid-template-columns: 1fr; gap: 0; }
+  .tst-viewport { grid-column: 1; }
+  .tst-dots { grid-column: 1; order: 3; margin-top: 38px; }
+  .tst-arrow { position: absolute; bottom: -4px; }
+  .tst-arrow-prev { left: 0; }
+  .tst-arrow-next { right: 0; }
+  .tst-quote { padding-left: 18px; }
+  .tst-by { margin-left: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tst-slide { transition: none; transform: none; }
+  .tst-dot { transition: none; }
+  .tst-viewport { transition: none; }
+}
