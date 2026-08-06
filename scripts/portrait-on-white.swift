@@ -12,10 +12,10 @@
 //   swift scripts/portrait-on-white.swift <in.jpg> <out.png> <hex-bg|none>
 //
 // This produced assets/founders/{emil,simon}-white.jpg from the .jpg originals
-// beside them, which are kept as the source. After running, crop to 4:5 (the
+// beside them, which are kept as the source. Then frame it with scripts/frame-portrait.mjs, which crops to 4:5 (the
 // .founder-portrait frame is 220x280 with object-fit: cover, so a square would
-// be cropped a second time by the browser) and save as JPEG, not PNG — the
-// background is opaque, and PNG cost 362KB where JPEG costs 51KB.
+// be cropped a second time by the browser) and writes JPEG, not PNG — the
+// background is opaque, and PNG cost 362KB for the pair where JPEG costs 51KB.
 
 import Foundation
 import Vision
