@@ -586,7 +586,10 @@ img, svg { display: block; max-width: 100%; }
 .ticker-track {
   display: flex; gap: 64px;
   width: max-content;
-  animation: tickerSlide 40s linear infinite;
+  /* Duration scales with the roster: -50% of a wider track in the same 40s would
+     whip 19 names past faster than anyone can read them. 8 names took 40s, so 19
+     take ~95s for the same px/second. */
+  animation: tickerSlide 95s linear infinite;
 }
 .ticker-track span {
   font-size: 18px;
