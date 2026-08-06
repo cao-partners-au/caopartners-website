@@ -101,27 +101,34 @@ function gtag_report_conversion(url) {
 
     .logo-svg { height: 32px; width: auto; display: block; }
 
+    /* Apple style — matches styles.css. The uppercase tracking is kept
+       because that is this page's editorial voice, not the button style;
+       what changes is the pill radius and colour-only motion. */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 10px 24px;
-      border-radius: 2px;
+      padding: 11px 24px;
+      border-radius: 980px;
       font-family: 'Jost', sans-serif;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.2s ease;
-      border: none;
+      border: 1px solid transparent;
+      background: transparent;
       letter-spacing: 0.12em;
       text-transform: uppercase;
+      transition: background-color 120ms ease-in-out,
+                  border-color 120ms ease-in-out,
+                  color 120ms ease-in-out;
     }
 
-    .btn-primary { background: var(--blue); color: var(--white); }
-    .btn-primary:hover { background: var(--blue-dark); box-shadow: 0 6px 20px rgba(18,105,255,0.3); }
-    .btn-outline { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.22); }
-    .btn-outline:hover { border-color: rgba(255,255,255,0.6); }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+    .btn-outline { background: transparent; color: var(--white); border-color: var(--blue); }
+    .btn-outline:hover { background: var(--blue); border-color: var(--blue); color: var(--white); }
+    .btn:focus-visible { outline: 2px solid #6ea4ff; outline-offset: 3px; }
 
     /* PAGE HEADER */
     .page-header, .article-header {

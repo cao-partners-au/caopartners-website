@@ -118,20 +118,24 @@ p + p { margin-top: 16px; }
 .prose strong { color: var(--white); font-weight: 600; }
 
 /* BUTTONS */
+/* Apple style — matches styles.css. Filled pill and outlined pill in the
+   same blue; colour-only motion, no lift and no shadow. Kept in sync by
+   hand because these SEO pages load their own stylesheet. */
 .btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 15px 34px; border-radius: 8px;
-  font-size: 16px; font-weight: 600; text-decoration: none;
-  border: none; cursor: pointer; font-family: inherit;
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 13px 26px; border-radius: 980px;
+  font-size: 16px; font-weight: 400; letter-spacing: -0.01em;
+  text-decoration: none; cursor: pointer; font-family: inherit;
+  border: 1px solid transparent; background: transparent;
+  transition: background-color 120ms ease-in-out,
+              border-color 120ms ease-in-out,
+              color 120ms ease-in-out;
 }
-.btn-primary { background: var(--blue); color: var(--white); }
-.btn-primary:hover {
-  background: var(--blue-dark); transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(18,105,255,0.3);
-}
-.btn-ghost { color: var(--white); border: 1px solid var(--border); }
-.btn-ghost:hover { border-color: var(--blue-border); }
+.btn-primary { background: var(--blue); border-color: var(--blue); color: var(--white); }
+.btn-primary:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+.btn-ghost { color: var(--white); border-color: var(--blue); }
+.btn-ghost:hover { background: var(--blue); border-color: var(--blue); color: var(--white); }
+.btn:focus-visible { outline: 2px solid #6ea4ff; outline-offset: 3px; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
 .btn-note { font-size: 14px; color: var(--text-subtle); }
 

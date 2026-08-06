@@ -98,47 +98,12 @@ img, svg { display: block; max-width: 100%; }
   50% { opacity: 0.4; transform: scale(0.85); }
 }
 
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 14px 26px;
-  font-size: 15px;
-  font-weight: 400;
-  letter-spacing: 0.005em;
-  border-radius: var(--radius);
-  transition: all 200ms cubic-bezier(.2,.7,.2,1);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.btn-primary {
-  background: var(--blue);
-  color: #fff;
-}
-.btn-primary:hover {
-  background: var(--blue-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px -8px var(--blue-glow);
-}
-.btn-ghost {
-  background: transparent;
-  color: var(--t1);
-  border: 1.5px solid rgba(255,255,255,0.55);
-}
-.btn-ghost:hover {
-  background: rgba(255,255,255,0.04);
-  border-color: var(--t1);
-}
-.btn-ghost.btn-dark {
-  color: var(--light-text);
-  border-color: rgba(15,16,32,0.4);
-}
-.btn-ghost.btn-dark:hover {
-  background: rgba(15,16,32,0.04);
-  border-color: var(--light-text);
-}
-.btn .arrow {
-  transition: transform 200ms cubic-bezier(.2,.7,.2,1);
-}
-.btn:hover .arrow { transform: translateX(3px); }
+/* Buttons are defined in one place — see "BUTTONS — Apple style" below.
+   They used to be declared here AND overridden by a liquid-glass block
+   further down, which is how a border: none !important ended up fighting
+   every later change. One definition now. */
+.btn .arrow { transition: transform 120ms ease-in-out; }
+.btn:hover .arrow { transform: translateX(2px); }
 
 /* ============================================================
    NAV
@@ -1475,101 +1440,93 @@ section { position: relative; }
 .reveal.d5 { transition-delay: 400ms; }
 
 /* ============================================================
-   LIQUID GLASS BUTTONS — Apple Tahoe style
-   Empty ::before lens prevents text ghosting from backdrop-filter
+   BUTTONS — Apple style
+   Replaced the liquid-glass treatment on 6 Aug 2026. Restore point:
+   git tag `pre-apple-buttons`, plus a full backup in
+   cao-crm-credentials/backups/website-liquid-glass-20260806/
+
+   The style is defined by what it leaves out: no glow, no glass, no
+   gradient, no shadow, no lift on hover, no icon. A filled pill and an
+   outlined pill in the same blue, with hierarchy carried entirely by
+   fill vs outline. It reads clean because nothing competes.
+
+   Two details do the work:
+     - RADIUS IS 980px, not a fixed rounding. Large enough that the ends
+       stay true semicircles at any height. A 12px radius reads Bootstrap.
+     - MOTION IS COLOUR ONLY, 120ms. No lift, no scale, no shadow bloom.
+       The button feels responsive because it is immediate.
+
+   ADAPTED FOR A DARK PAGE. Apple's marketing blocks are white, where a
+   mid blue on white is the accessible pairing. Blue text on #04050f at
+   this size falls under contrast guidance, so on the dark page the
+   outlined variant carries WHITE text with a blue border and fills blue
+   on hover. On .section-light, Apple's own polarity is kept.
    ============================================================ */
 .btn {
   position: relative;
-  isolation: isolate;
-  background: transparent !important;
-  border: none !important;
-  transition: transform 280ms cubic-bezier(.2,.7,.2,1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 980px;
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  transition: background-color 120ms ease-in-out,
+              border-color 120ms ease-in-out,
+              color 120ms ease-in-out;
 }
-.btn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  z-index: -1;
-  backdrop-filter: blur(12px) saturate(160%);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  background: rgba(255,255,255,0.05);
-  transition: background 320ms cubic-bezier(.65,0,.35,1), box-shadow 320ms cubic-bezier(.65,0,.35,1);
-}
-.btn > * { position: relative; z-index: 1; }
 
-/* Primary — blue-tinted liquid glass */
+/* Filled — the primary action */
 .btn-primary {
+  background: var(--blue);
+  border-color: var(--blue);
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-  box-shadow: none !important;
 }
-.btn-primary::before {
-  background: rgba(18,105,255,0.62);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.20),
-    inset 1.8px 3px 0 -2px rgba(255,255,255,0.85),
-    inset -2px -2px 0 -2px rgba(255,255,255,0.70),
-    inset -3px -8px 1px -6px rgba(255,255,255,0.45),
-    inset -0.3px -1px 4px 0 rgba(0,0,0,0.12),
-    inset -1.5px 2.5px 0 -2px rgba(0,0,0,0.20),
-    inset 0 3px 4px -2px rgba(0,0,0,0.20),
-    inset 2px -6.5px 1px -4px rgba(0,0,0,0.10),
-    0 1px 4px 0 rgba(0,0,0,0.18),
-    0 8px 24px -2px rgba(18,105,255,0.32);
+.btn-primary:hover {
+  background: var(--blue-hover);
+  border-color: var(--blue-hover);
+  transform: none;
+  box-shadow: none;
 }
-.btn-primary:hover::before {
-  background: rgba(18,105,255,0.78);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.24),
-    inset 1.8px 3px 0 -2px rgba(255,255,255,0.95),
-    inset -2px -2px 0 -2px rgba(255,255,255,0.80),
-    inset -3px -8px 1px -6px rgba(255,255,255,0.55),
-    inset -0.3px -1px 4px 0 rgba(0,0,0,0.12),
-    inset -1.5px 2.5px 0 -2px rgba(0,0,0,0.20),
-    inset 0 3px 4px -2px rgba(0,0,0,0.20),
-    inset 2px -6.5px 1px -4px rgba(0,0,0,0.10),
-    0 1px 4px 0 rgba(0,0,0,0.18),
-    0 14px 36px -4px rgba(18,105,255,0.45);
-}
-.btn-primary:hover { transform: scale(1.025); }
-.btn-primary:active { transform: scale(0.97); transition-duration: 80ms; }
 
-/* Ghost — clear liquid glass */
+/* Outlined — same blue, no fill */
 .btn-ghost {
+  background: transparent;
+  border-color: var(--blue);
+  color: var(--t1);
+}
+.btn-ghost:hover {
+  background: var(--blue);
+  border-color: var(--blue);
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-.btn-ghost::before {
-  background: rgba(255,255,255,0.06);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.12),
-    inset 1.8px 3px 0 -2px rgba(255,255,255,0.85),
-    inset -2px -2px 0 -2px rgba(255,255,255,0.65),
-    inset -3px -8px 1px -6px rgba(255,255,255,0.40),
-    inset -0.3px -1px 4px 0 rgba(0,0,0,0.12),
-    inset -1.5px 2.5px 0 -2px rgba(0,0,0,0.20),
-    inset 0 3px 4px -2px rgba(0,0,0,0.20),
-    inset 2px -6.5px 1px -4px rgba(0,0,0,0.10),
-    0 1px 4px 0 rgba(0,0,0,0.10),
-    0 6px 16px -2px rgba(0,0,0,0.22);
+
+/* On the light sections, blue-on-white is readable, so use Apple's polarity */
+.btn-ghost.btn-dark {
+  border-color: var(--blue);
+  color: var(--blue);
 }
-.btn-ghost:hover::before {
-  background: rgba(255,255,255,0.16);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.18),
-    inset 1.8px 3px 0 -2px rgba(255,255,255,0.95),
-    inset -2px -2px 0 -2px rgba(255,255,255,0.75),
-    inset -3px -8px 1px -6px rgba(255,255,255,0.50),
-    inset -0.3px -1px 4px 0 rgba(0,0,0,0.12),
-    inset -1.5px 2.5px 0 -2px rgba(0,0,0,0.20),
-    inset 0 3px 4px -2px rgba(0,0,0,0.20),
-    inset 2px -6.5px 1px -4px rgba(0,0,0,0.10),
-    0 1px 4px 0 rgba(0,0,0,0.10),
-    0 10px 24px -4px rgba(0,0,0,0.30);
+.btn-ghost.btn-dark:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
 }
-.btn-ghost:hover { transform: scale(1.025); }
-.btn-ghost:active { transform: scale(0.97); transition-duration: 80ms; }
+
+/* Keyboard focus. The liquid-glass buttons had NO focus state, so anyone
+   navigating by keyboard could not see where they were. Apple's pattern is
+   a visible offset outline rather than a glow. */
+.btn:focus-visible {
+  outline: 2px solid #6ea4ff;
+  outline-offset: 3px;
+}
 
 /* ============================================================
    MODALS
