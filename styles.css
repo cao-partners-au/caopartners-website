@@ -584,31 +584,54 @@ img, svg { display: block; max-width: 100%; }
   mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
 }
 .ticker-track {
-  display: flex; gap: 64px;
+  display: flex; gap: 64px; align-items: center;
   width: max-content;
   /* Duration scales with the roster: -50% of a wider track in the same 40s would
      whip 19 names past faster than anyone can read them. 8 names took 40s, so 19
      take ~95s for the same px/second. */
   animation: tickerSlide 95s linear infinite;
 }
-.ticker-track span {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--t3);
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 64px;
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker-track span { display: inline-flex; align-items: center; flex: 0 0 auto; }
+.ticker-track img {
+  width: auto; object-fit: contain; display: block;
+  opacity: .78;
+  transition: opacity 200ms ease;
 }
-.ticker-track span::after {
-  content: "";
-  display: inline-block;
-  width: 4px; height: 4px;
-  background: var(--t4);
-  border-radius: 50%;
-}
-.ticker-track span:last-child::after { display: none; }
+.ticker-track span:hover img { opacity: 1; }
+
+/* PER-LOGO HEIGHTS — not a style choice, a measurement.
+   One height for all 19 looks wrong because a fixed height sizes the BOUNDING
+   BOX, and these files disagree wildly about how much padding and tagline sits
+   inside it: beard.com towered while Northwear vanished. Each height below was
+   derived by rendering the logo off-screen, counting its opaque pixels, and
+   solving for the height at which every logo carries the same INK AREA — which
+   is what the eye reads as "same size".
+   Two corrections on top: solid marks (Fencepac, Territory Water) carry far
+   more ink than a hairline wordmark of equal apparent size, so their result is
+   blended back toward the uniform height; and near-square badges (H&L,
+   Brisbane Pump Action) get a 42px floor, below which the artwork inside the
+   circle is an unreadable smudge.
+   Regenerate with scripts/fit-ticker-logos.mjs if the roster changes. */
+.ticker-track .cl-fencepac { height: 20px; }
+.ticker-track .cl-territory-water { height: 23px; }
+.ticker-track .cl-phlat { height: 35px; }
+.ticker-track .cl-vitale { height: 27px; }
+.ticker-track .cl-northwear { height: 35px; }
+.ticker-track .cl-ngu { height: 29px; }
+.ticker-track .cl-one-life-club { height: 32px; }
+.ticker-track .cl-beard { height: 17px; }
+.ticker-track .cl-adco { height: 30px; }
+.ticker-track .cl-complete-refrigeration { height: 28px; }
+.ticker-track .cl-handl { height: 42px; }
+.ticker-track .cl-pavscorp { height: 36px; }
+.ticker-track .cl-lap-collective { height: 29px; }
+.ticker-track .cl-projx { height: 31px; }
+.ticker-track .cl-willship { height: 28px; }
+.ticker-track .cl-brisbane-pump-action { height: 42px; }
+.ticker-track .cl-ezyair { height: 31px; }
+.ticker-track .cl-striking-pools { height: 31px; }
+.ticker-track .cl-hive { height: 27px; }
 @keyframes tickerSlide {
   from { transform: translate3d(0,0,0); }
   to   { transform: translate3d(-50%,0,0); }
