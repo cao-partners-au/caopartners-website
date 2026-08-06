@@ -654,79 +654,83 @@
 })();
 
 /* ============================================================
-   TESTIMONIALS CAROUSEL
+   TESTIMONIALS CAROUSELS
    ============================================================
-   Cycles on its own, but every automatic behaviour yields to the reader:
-   it pauses on hover, on keyboard focus, and while the tab is hidden, and it
-   does not auto-advance at all under prefers-reduced-motion. A quote that
-   slides away mid-sentence is worse than no motion.
+   Two independent carousels (candidates, clients), each driven separately —
+   hence querySelectorAll and a per-instance closure. The single-instance version
+   bound with querySelector and silently drove only the first, which looks like a
+   dead second card rather than an error.
+
+   Every automatic behaviour yields to the reader: each pauses on hover, on
+   keyboard focus, and while the tab is hidden, and neither auto-advances under
+   prefers-reduced-motion. A quote that slides away mid-sentence is worse than no
+   motion.
    ============================================================ */
 (function () {
-  const root = document.querySelector('[data-testimonials]');
-  if (!root) return;
-
-  const slides = Array.from(root.querySelectorAll('[data-tst-slide]'));
-  const dotsWrap = root.querySelector('[data-tst-dots]');
-  const prev = root.querySelector('[data-tst-prev]');
-  const next = root.querySelector('[data-tst-next]');
-  if (slides.length < 2) return;
-
-  const INTERVAL = 7000;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let index = 0;
-  let timer = null;
+  const INTERVAL = 7000;
 
-  const dots = slides.map((_, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'tst-dot';
-    b.setAttribute('role', 'tab');
-    b.setAttribute('aria-label', `Testimonial ${i + 1} of ${slides.length}`);
-    b.addEventListener('click', () => { show(i); restart(); });
-    dotsWrap.appendChild(b);
-    return b;
+  document.querySelectorAll('[data-testimonials]').forEach((root, rootIndex) => {
+    const slides = Array.from(root.querySelectorAll('[data-tst-slide]'));
+    const viewport = root.querySelector('[data-tst-viewport]');
+    const dotsWrap = root.querySelector('[data-tst-dots]');
+    const prev = root.querySelector('[data-tst-prev]');
+    const next = root.querySelector('[data-tst-next]');
+    if (!viewport || slides.length < 2) return;
+
+    let index = 0;
+    let timer = null;
+
+    const dots = slides.map((_, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tst-dot';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', `Testimonial ${i + 1} of ${slides.length}`);
+      b.addEventListener('click', () => { show(i); restart(); });
+      dotsWrap.appendChild(b);
+      return b;
+    });
+
+    function sizeToActive() {
+      // offsetHeight of the ACTIVE slide, not scrollHeight of the viewport: all
+      // slides share one grid cell, so the viewport always reports the tallest.
+      const active = slides[index];
+      if (active) viewport.style.height = active.offsetHeight + 'px';
+    }
+
+    function show(i) {
+      index = (i + slides.length) % slides.length;
+      slides.forEach((s, n) => s.classList.toggle('is-active', n === index));
+      dots.forEach((d, n) => d.setAttribute('aria-selected', String(n === index)));
+      sizeToActive();
+    }
+
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function start() { if (!reduce && !timer) timer = setInterval(() => show(index + 1), INTERVAL); }
+    // After a manual move, restart the clock so the reader gets a full interval
+    // rather than whatever fraction was left on it.
+    function restart() { stop(); start(); }
+
+    if (prev) prev.addEventListener('click', () => { show(index - 1); restart(); });
+    if (next) next.addEventListener('click', () => { show(index + 1); restart(); });
+
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft')  { show(index - 1); restart(); }
+      if (e.key === 'ArrowRight') { show(index + 1); restart(); }
+    });
+
+    show(0);
+    // Re-measure once webfonts land, since Jost swapping in re-wraps the quotes.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeToActive);
+    window.addEventListener('resize', sizeToActive);
+    // Stagger the two so they do not flip in lockstep, which reads as one widget.
+    setTimeout(start, rootIndex * 2200);
   });
-
-  const viewport = root.querySelector('[data-tst-viewport]');
-
-  function sizeToActive() {
-    // offsetHeight of the active slide, not scrollHeight of the viewport: every
-    // slide shares one grid cell, so the viewport always reports the tallest.
-    const active = slides[index];
-    if (active) viewport.style.height = active.offsetHeight + 'px';
-  }
-
-  function show(i) {
-    index = (i + slides.length) % slides.length;
-    slides.forEach((s, n) => s.classList.toggle('is-active', n === index));
-    dots.forEach((d, n) => d.setAttribute('aria-selected', String(n === index)));
-    sizeToActive();
-  }
-
-  function stop() { if (timer) { clearInterval(timer); timer = null; } }
-  function start() { if (!reduce && !timer) timer = setInterval(() => show(index + 1), INTERVAL); }
-  // After a manual move, restart the clock so the reader gets a full interval
-  // rather than whatever fraction was left on it.
-  function restart() { stop(); start(); }
-
-  prev.addEventListener('click', () => { show(index - 1); restart(); });
-  next.addEventListener('click', () => { show(index + 1); restart(); });
-
-  root.addEventListener('mouseenter', stop);
-  root.addEventListener('mouseleave', start);
-  root.addEventListener('focusin', stop);
-  root.addEventListener('focusout', start);
-  document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
-
-  // Arrow keys work once anything in the carousel has focus.
-  root.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft')  { show(index - 1); restart(); }
-    if (e.key === 'ArrowRight') { show(index + 1); restart(); }
-  });
-
-  show(0);
-  // Re-measure once webfonts land, since Jost swapping in re-wraps the quotes.
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeToActive);
-  window.addEventListener('resize', sizeToActive);
-  start();
 })();
