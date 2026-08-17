@@ -41,6 +41,8 @@ const SHARED = ["logo.svg", "preview.mp4"];
 const PIXEL_ID = "1656519126480896";   // CAO in-house dataset, NOT the creator army's
 const MARK_OPEN = "<!-- wired:begin -->";
 const MARK_CLOSE = "<!-- wired:end -->";
+const FOOT_OPEN = "<!-- wired:foot:begin -->";
+const FOOT_CLOSE = "<!-- wired:foot:end -->";
 
 const BLOCK = `${MARK_OPEN}
 <!-- Injected by scripts/wire-lead-magnets.mjs. Do not edit here or in the
@@ -59,17 +61,38 @@ fbq('init','${PIXEL_ID}');fbq('track','PageView');
 <script src="/lm-capture.js" defer></script>
 ${MARK_CLOSE}`;
 
+/**
+ * A privacy link, injected at the foot of every magnet.
+ *
+ * WHY IT IS NOT OPTIONAL. These pages are the destination for paid Meta ads and
+ * they collect a name, email and phone. Meta's advertising policies require the
+ * destination to carry an accessible privacy policy, and an ad can be rejected
+ * for its absence — so a missing link here costs delivery, not just tidiness.
+ * The generated asset has no footer of its own, hence a minimal one.
+ */
+const FOOT = `${FOOT_OPEN}
+<div style="text-align:center;padding:28px 16px 40px;font:300 13px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;opacity:.55">
+  <a href="https://caopartners.com.au/privacy/" style="color:inherit;text-decoration:underline">Privacy Policy</a>
+  &nbsp;·&nbsp; © CAO Partners Pty Ltd
+</div>
+${FOOT_CLOSE}`;
+
 /** Remove any previously injected block so re-running cannot stack them. */
 function strip(html) {
-  const re = new RegExp(`${MARK_OPEN}[\\s\\S]*?${MARK_CLOSE}\\s*`, "g");
-  return html.replace(re, "");
+  const head = new RegExp(`${MARK_OPEN}[\\s\\S]*?${MARK_CLOSE}\\s*`, "g");
+  const foot = new RegExp(`${FOOT_OPEN}[\\s\\S]*?${FOOT_CLOSE}\\s*`, "g");
+  return html.replace(head, "").replace(foot, "");
 }
 
 function wire(html) {
   const clean = strip(html);
   const at = clean.lastIndexOf("</head>");
   if (at < 0) throw new Error("no </head> — cannot inject");
-  return clean.slice(0, at) + BLOCK + "\n" + clean.slice(at);
+  const withHead = clean.slice(0, at) + BLOCK + "\n" + clean.slice(at);
+
+  const foot = withHead.lastIndexOf("</body>");
+  if (foot < 0) throw new Error("no </body> — cannot inject the privacy link");
+  return withHead.slice(0, foot) + FOOT + "\n" + withHead.slice(foot);
 }
 
 /**
