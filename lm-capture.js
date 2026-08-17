@@ -1,0 +1,145 @@
+/**
+ * lm-capture.js — turn a lead-magnet report into a CRM lead.
+ *
+ * The five /plan/ pages are GENERATED from Oscar's AIOS vault and his README is
+ * explicit: "Edit the config, never the HTML. Every file here is generated, and
+ * a regenerate overwrites hand edits without warning." So nothing here lives
+ * inside those files. This script is stamped onto them at deploy time by
+ * scripts/wire-lead-magnets.mjs, which is re-runnable — Oscar ships new HTML,
+ * we re-run the injection, and the wiring survives.
+ *
+ * THE HOOK. The asset adds `done` to <body> at the moment the report renders:
+ *
+ *     if(step >= STEP_RESULT){ document.body.classList.add("done"); renderReport(); ... }
+ *
+ * Its own comment says this is "exactly as on every other asset", so watching
+ * that class is stable across all five and across a regenerate. Wrapping an
+ * internal function or matching a button label would not be.
+ *
+ * WHY VALUES ARE BUFFERED. The contact inputs are destroyed when the step
+ * changes, so by the time `done` appears there is nothing left to read. A
+ * delegated listener records them as they are typed.
+ *
+ * DEDUPE. The browser Lead and the server Lead share one event_id, so Meta
+ * counts one conversion rather than two. Same mechanism as /lead-form.js.
+ */
+(function () {
+  "use strict";
+
+  var ENDPOINT = "/.netlify/functions/form-submit";
+  var buf = {};
+  var sent = false;
+
+  /* The magnet slug is the folder: /plan/construction/ -> "construction". */
+  function magnet() {
+    var m = String(location.pathname).match(/\/plan\/([a-z0-9-]+)/i);
+    return m ? m[1].toLowerCase() : "unknown";
+  }
+
+  function cookie(name) {
+    var m = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]*)"));
+    return m ? decodeURIComponent(m[2]) : "";
+  }
+
+  /* Placeholder is the only stable label on these inputs — they carry no name
+     or id. Kept loose so a wording tweak upstream does not silently drop a
+     field; anything unrecognised is ignored rather than guessed at. */
+  function classify(el) {
+    var ph = (el.placeholder || "").toLowerCase();
+    if (el.type === "email") return "email";
+    if (el.type === "tel") return "phone";
+    if (/first/.test(ph)) return "first_name";
+    if (/last|surname/.test(ph)) return "last_name";
+    if (/business|company/.test(ph)) return "company";
+    return null;
+  }
+
+  document.addEventListener("input", function (e) {
+    var el = e.target;
+    if (!el || el.tagName !== "INPUT") return;
+    var key = classify(el);
+    if (key) buf[key] = String(el.value || "").trim();
+  }, true);
+
+  /* The two quiz answers are button choices, not inputs. Record the label of
+     whichever option is selected on the way past. */
+  /* The asset's headcount bands do not line up with the CRM's, and the CRM
+     field is a <select> with a fixed list. Posting "20 to 50" leaves the
+     dropdown BLANK — and a rep saving an unrelated edit then writes that blank
+     over the real value. Same failure as the "Service Agreement Sent" literal.
+     So map to the CRM's band with the largest overlap, and keep the verbatim
+     answer in the message so nothing the reader said is lost. */
+  var SIZE_MAP = {
+    "under 20":      "1-10",
+    "20 to 50":      "11-50",
+    "50 to 120":     "50-200",
+    "120 to 300":    "200-500",
+    "more than 300": "500+"
+  };
+
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button,[data-value]") : null;
+    if (!el) return;
+    var t = String(el.textContent || "").trim();
+    if (!t || t.length > 40) return;
+    if (t.indexOf("$") > -1 || /m\b|million/i.test(t)) { buf.turnover = t; return; }
+    var mapped = SIZE_MAP[t.toLowerCase()];
+    if (mapped) { buf.company_size = mapped; buf.size_said = t; }
+  }, true);
+
+  function fire() {
+    if (sent) return;                    // the class can be re-added on re-render
+    sent = true;
+
+    var eventId = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : String(Date.now()) + "-" + Math.random().toString(16).slice(2);
+
+    /* Browser Lead. The server sends the matching one from form-submit.js with
+       the SAME event_id, and Meta collapses the pair. */
+    try {
+      if (typeof window.fbq === "function") {
+        window.fbq("track", "Lead", { content_name: "ai-build-plan:" + magnet() }, { eventID: eventId });
+      }
+    } catch (err) { /* tracking must never block the capture */ }
+
+    var fd = new FormData();
+    fd.append("form-name", "enquire");
+    fd.append("first_name", buf.first_name || "");
+    fd.append("last_name", buf.last_name || "");
+    fd.append("email", buf.email || "");
+    fd.append("phone", buf.phone || "");
+    fd.append("company", buf.company || "");
+    fd.append("company_size", buf.company_size || "");
+    /* lead_source is what routes this to the CAO dataset in form-submit.js and
+       what the CRM reports on. It is the same in-house Meta channel as the
+       enquiry form, so it stays Meta-CAO; the magnet goes in the detail. */
+    fd.append("lead_source", "Meta-CAO");
+    fd.append("lead_source_detail", "magnet=" + magnet() + " turnover=" + (buf.turnover || "?") + " ref=" + location.href);
+    fd.append("message",
+      "Requested the " + magnet().replace(/-/g, " ") + " AI build plan.\n" +
+      "Headcount: " + (buf.size_said || "not given") + "\n" +
+      "Turnover: " + (buf.turnover || "not given"));
+    fd.append("fb_event_id", eventId);
+    fd.append("fb_fbc", cookie("_fbc"));
+    fd.append("fb_fbp", cookie("_fbp"));
+    fd.append("fb_source_url", location.href);
+
+    fetch(ENDPOINT, { method: "POST", body: fd })
+      .catch(function () { /* the reader already has their report; never alarm them */ });
+  }
+
+  /* Watch <body class> for `done`. */
+  function watch() {
+    if (document.body.classList.contains("done")) { fire(); return; }
+    new MutationObserver(function () {
+      if (document.body.classList.contains("done")) fire();
+    }).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", watch);
+  } else {
+    watch();
+  }
+})();
