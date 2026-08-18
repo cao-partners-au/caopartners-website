@@ -819,7 +819,15 @@ footer p { font-size:13px; font-weight:300; color:var(--t3); margin:0; }
    checkbox. `print-color-adjust: exact` is what forces them on without it, and
    it is set on every element here that carries a fill.
 --------------------------------------------------------------------------- */
-@page { size: A4; margin: 15mm 14mm 14mm; }
+/* VERTICAL MARGINS ONLY. Oscar 2026-08-18: Michael's download came out with the
+   margins compressed. Every browser lets the reader's print dialog override
+   `@page { margin }`, and iOS Safari sets its own regardless, so a left/right
+   inset declared here is a suggestion rather than a measurement. The horizontal
+   inset moved to `body`'s padding below, which is inside the flow, spans every
+   page, and no print dialog can reach it. Top and bottom stay here
+   because padding on a flowed block gives them on the first and last page only,
+   never on the pages between. */
+@page { size: A4; margin: 15mm 0 14mm; }
 /* the cover runs to the paper edge, and nothing else does */
 @page :first { margin: 0; }
 
@@ -848,6 +856,27 @@ footer p { font-size:13px; font-weight:300; color:var(--t3); margin:0; }
   #report .hair, #report .tiers, #report .joins, #report .stats { max-width:none !important;
     margin-inline:0 !important; }
 
+  /* THE LEFT AND RIGHT MARGINS OF THE DOCUMENT, as padding rather than page
+     margin. See the `@page` note above: this is the half of the sheet geometry
+     the reader's print dialog cannot override, and it is why the same file now
+     comes off two machines the same width.
+
+     IT GOES ON `body`, NOT ON `#report`. Section 06's ask and the site's final
+     CTA are printed from OUTSIDE the report main (`shell.py` appends them after
+     `</main>`), so padding `#report` insets most of the document and leaves the
+     last page 6mm wider than every page above it. Measured, not assumed:
+     `masterpdf.py`'s render came out at 8.3mm on the closing page against
+     14mm everywhere else. `body` is the one box every printed block is inside. */
+  body { padding-left:14mm !important; padding-right:14mm !important;
+    box-sizing:border-box !important; }
+  #report { max-width:none !important; width:auto !important;
+    margin-inline:0 !important; padding-left:0 !important; padding-right:0 !important; }
+
+  /* iOS and iPadOS inflate body text on a page they judge narrow, which is the
+     other half of "it looks different on his machine": the same document comes
+     off a phone with larger copy and one more page. */
+  html, body { -webkit-text-size-adjust:100% !important; text-size-adjust:100% !important; }
+
   /* ---- 1 THE COVER ----------------------------------------------------- */
   /* `.rep-head` is the screen page's header and the cover replaces it whole,
      down to the same five facts. Printing both repeats them on page two. */
@@ -860,7 +889,9 @@ footer p { font-size:13px; font-weight:300; color:var(--t3); margin:0; }
     position:relative;
     box-sizing:border-box;
     width:210mm; height:297mm;
-    margin:0; padding:0 20mm;
+    /* the cover is the one thing that runs to the paper edge, so it takes
+       `body`'s 14mm horizontal padding back off itself. */
+    margin:0 -14mm; padding:0 20mm;
     background:var(--navy) !important;
     break-after:page; break-inside:avoid;
   }
@@ -1369,9 +1400,15 @@ fbq('init','1656519126480896');fbq('track','PageView');
 </div>
 <nav class="nav">
   <div class="row">
-    <a class="logo" href="https://caopartners.com.au/" aria-label="CAO Partners home">
+    <!-- THE LOGO IS NOT A LINK. Oscar 2026-08-18: the reader stays on the plan.
+         It was an <a> to caopartners.com.au, which was the only way off this
+         page, and it sat in the top left where every reader's eye starts. The
+         mark still carries the branding; keeping the same class keeps the
+         design lock clean, and dropping the href takes it out of the tab order
+         with it. -->
+    <span class="logo">
       <img class="logo-svg" src="/plan/_shared/logo.svg" alt="CAO Partners" />
-    </a>
+    </span>
     <span class="meta">The AI Build Plan</span>
   </div>
 </nav>
@@ -1550,6 +1587,23 @@ const SET = {
 
   asset: "The AI Build Plan",
   noun: "professional services business",
+
+  /* THE DOWNLOAD. Oscar 2026-08-18: the reader downloads a file we rendered,
+     and nothing on their device renders anything.
+
+     Michael's copy came back with the margins compressed, because the old
+     button called `window.print()` and handed the document to whoever's print
+     dialog was open. Paper size, margins and scale were all theirs. Rendering
+     it server-side in headless Chrome would have moved the variance rather
+     than removed it: it is still a render, just one we own. A static file has
+     no render step at all, so the bytes the reader opens are the bytes that
+     were committed, on every device, every time.
+
+     The file is built by `_verify/masterpdf.py` and checked by
+     `_verify/pdfmargins.py`. It sits beside this page, which is why the path
+     is bare. `_shell/stage.py` rewrites it if the shipped filename differs
+     from the splice name. */
+  pdf: "professional-services-ai-build-plan.pdf",
 
   /* Australian accounting and tax practice uses tax agent and BAS agent as registered categories for a person under the Tax Agent Services Act, so every title says AI Agent in full. language-rules.md binds. Declared because this format carries too little copy for the roadmap.js scan to find the collision on its own. */
   agentCollision: true,
@@ -1892,7 +1946,7 @@ function jumpToReport(){
    third one, in the two places they are most likely to want it: at the top of
    the report, and under every build's title card as they walk.
 
-   IT IS THE PRINT BUTTON AND NOTHING ELSE. Oscar 2026-08-17, second pass: the
+   IT IS THE DOWNLOAD AND NOTHING ELSE. Oscar 2026-08-17, second pass: the
    hatch carried the "Let's have a chat" button too, and he cut it from both
    placements. The hatch exists to let someone LEAVE with the document, so
    pairing it with the ask turns an exit into a pitch, and the ask already
@@ -1901,13 +1955,15 @@ function jumpToReport(){
    `.actions`, `.btn`, `.btn-ghost` and `.note` all exist; the wrapper is a data
    attribute, so the design lock has no new class to declare.
 
-   `window.print()` is what the section 06 button already calls. On iOS it opens
-   the share sheet, where "Save to Files" writes the PDF. */
+   It is an `<a download>` to `SET.pdf`, not `window.print()`. See the `pdf`
+   note in SET: the reader takes the file we rendered, and their device renders
+   nothing. `download` is what stops a phone opening the PDF in a tab instead
+   of saving it. */
 function escapeHatch(lead){
   return '<div data-esc>' +
     (lead ? '<p class="note">' + esc(lead) + '</p>' : '') +
     '<div class="actions">' +
-      '<button class="btn btn-ghost" onclick="window.print()">Print or save as PDF</button>' +
+      '<a class="btn btn-ghost" href="' + SET.pdf + '" download>Download the PDF</a>' +
     '</div>' +
   '</div>';
 }
@@ -2968,7 +3024,7 @@ function renderReport(){
     '<p class="copy" data-rv>' + esc(SET.sec05.copy) + '</p>' +
     '<div class="actions" data-rv><a class="btn btn-primary" href="' + BOOKING_URL + '" target="_blank" rel="noreferrer">' +
       esc(SET.cta.buttonText) + ' <span class="arrow">&rarr;</span></a>' +
-      '<button class="btn btn-ghost" onclick="window.print()">Print or save as PDF</button></div>' +
+      '<a class="btn btn-ghost" href="' + SET.pdf + '" download>Download the PDF</a></div>' +
     /* THE PDF's CLOSING BLOCK, print only. Every `.btn` is hidden on paper, so
        without this the document ends on a heading and a paragraph with no way
        to act on either. The booking link is printed as text because a printed
