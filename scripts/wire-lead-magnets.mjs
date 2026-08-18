@@ -58,6 +58,10 @@ fbq('init','${PIXEL_ID}');fbq('track','PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
  src="https://www.facebook.com/tr?id=${PIXEL_ID}&ev=PageView&noscript=1"/></noscript>
+<!-- The generated pages declare no icon, so every browser asks for
+     /favicon.ico and gets a 404. Cosmetic, but these are paid landing
+     pages and a blank tab icon is the first thing a reader sees. -->
+<link rel="icon" href="/favicon.svg">
 <script src="/lm-capture.js" defer></script>
 ${MARK_CLOSE}`;
 
