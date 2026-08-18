@@ -41,6 +41,86 @@
     return m ? decodeURIComponent(m[2]) : "";
   }
 
+  /* EMAIL AND PHONE ARE BOTH COMPULSORY.
+     A report handed over for an email alone leaves a lead nobody can ring, and
+     these magnets exist to start conversations. Both are validated here rather
+     than by the asset's own markup, because the pages are GENERATED and a
+     regenerate would drop any `required` attribute added upstream.
+     Kept deliberately loose: the job is to stop blanks and obvious rubbish, not
+     to argue with a real person about their own number. */
+  function validEmail(v) {
+    v = String(v || "").trim();
+    return v.indexOf("@") > 0 && v.indexOf(".", v.indexOf("@")) > 0 && !/\s/.test(v);
+  }
+  function validPhone(v) {
+    // Australian mobiles and landlines, however the reader chooses to type them.
+    // Also accepts +61 form. 8 digits is the shortest real AU number.
+    var digits = String(v || "").replace(/[^0-9]/g, "");
+    return digits.length >= 8 && digits.length <= 15;
+  }
+
+  /* Are we on the step that asks who they are? */
+  function contactInputs() {
+    return [].slice.call(document.querySelectorAll("input")).filter(function (el) {
+      return el.offsetParent !== null && (el.type === "email" || el.type === "tel");
+    });
+  }
+
+  function missingFields() {
+    var missing = [];
+    if (!validEmail(buf.email)) missing.push("a valid email address");
+    if (!validPhone(buf.phone)) missing.push("a contact phone number");
+    return missing;
+  }
+
+  /* Inline, non-blocking message. No alert(): an alert on a mobile ad landing
+     page reads as a malfunction and loses the reader outright. */
+  function warn(msg) {
+    var id = "lm-required-msg";
+    var box = document.getElementById(id);
+    if (!box) {
+      box = document.createElement("div");
+      box.id = id;
+      box.setAttribute("role", "alert");
+      box.style.cssText =
+        "margin:14px 0;padding:11px 14px;border-radius:10px;font:400 14px/1.5 inherit;" +
+        "background:rgba(220,38,38,.10);border:1px solid rgba(220,38,38,.45);color:#fca5a5;";
+      var anchor = contactInputs()[0];
+      var host = anchor && anchor.parentNode ? anchor.parentNode : document.body;
+      host.appendChild(box);
+    }
+    box.textContent = msg;
+    box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  function clearWarning() {
+    var box = document.getElementById("lm-required-msg");
+    if (box && box.parentNode) box.parentNode.removeChild(box);
+  }
+
+  /* THE GATE. Runs in the capture phase, so it stops the asset's own handler
+     before it can advance the step and render the report.
+
+     Keyed on "this step is showing contact inputs" rather than on the button's
+     text, because the submit label differs per magnet ("Show me the five
+     builds" on construction) and is regenerated upstream. Back and the carousel
+     arrows stay clickable so nobody gets trapped on the step. */
+  var NAV = /^(back|←|→|‹|›|<|>)$/i;
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button,[data-value],a") : null;
+    if (!el) return;
+    if (!contactInputs().length) return;                 // not the contact step
+    if (NAV.test(String(el.textContent || "").trim())) return;
+
+    var missing = missingFields();
+    if (!missing.length) { clearWarning(); return; }
+
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    warn("Please enter " + missing.join(" and ") + " so we can send your report.");
+  }, true);
+
   /* Placeholder is the only stable label on these inputs — they carry no name
      or id. Kept loose so a wording tweak upstream does not silently drop a
      field; anything unrecognised is ignored rather than guessed at. */
@@ -90,7 +170,9 @@
   function fire() {
     if (sent) return;                    // the class can be re-added on re-render
 
-    /* NO EMAIL, NO CAPTURE.
+    /* NO EMAIL AND PHONE, NO CAPTURE. Last line of defence behind the click
+       gate above, for any path that reaches the report without going through a
+       click we saw (restored session, keyboard submit, upstream markup change).
        `done` means the report rendered, which is not the same as the reader
        having identified themselves. Meta's ad-review crawler executes the page
        and clicks through, and a real visitor can abandon after question one, so
@@ -101,8 +183,7 @@
        is that false conversions teach the pixel to optimise toward bots.
        Deliberately does NOT set `sent`, so a genuine submission moments later
        still captures. */
-    var email = String(buf.email || "").trim();
-    if (email.indexOf("@") < 1 || email.indexOf(".") < 0) return;
+    if (missingFields().length) return;
 
     sent = true;
 
