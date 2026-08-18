@@ -89,6 +89,21 @@
 
   function fire() {
     if (sent) return;                    // the class can be re-added on re-render
+
+    /* NO EMAIL, NO CAPTURE.
+       `done` means the report rendered, which is not the same as the reader
+       having identified themselves. Meta's ad-review crawler executes the page
+       and clicks through, and a real visitor can abandon after question one, so
+       without this guard both produce a cao_Leads row with an empty name and
+       email AND a browser+server Lead conversion. Verified on 18 Aug 2026: an
+       ad-review hit on /plan/trades/ created exactly that, two seconds before
+       the end-to-end test row. Junk leads are the visible cost; the worse one
+       is that false conversions teach the pixel to optimise toward bots.
+       Deliberately does NOT set `sent`, so a genuine submission moments later
+       still captures. */
+    var email = String(buf.email || "").trim();
+    if (email.indexOf("@") < 1 || email.indexOf(".") < 0) return;
+
     sent = true;
 
     var eventId = (window.crypto && crypto.randomUUID)
