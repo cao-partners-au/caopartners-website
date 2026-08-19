@@ -168,7 +168,15 @@
       "Headcount: " + (buf.size_said || "not given") + "\n" +
       "Turnover: " + (buf.turnover || "not given") + "\n" +
       "Answers: " + (answers.join(" | ") || "none recorded") + "\n" +
-      "NOTE: the calendar was opened. Confirm the booking landed before treating this as a meeting.");
+      /* The capture fires when the calendar OPENS, not when a time is taken, so
+         this row alone does not mean a meeting exists. It does not need a rep to
+         go and check, though: cao-crm-pipeline-advancer runs hourly, matches
+         Calendly invitee emails to cao_Leads and moves the card to Discovery
+         Booked, counting active invitees only. So the board answers it. Say
+         where to look rather than asking for manual work nobody will do. */
+      "NOTE: this fires when the calendar opens, not when a time is taken. " +
+      "If they booked, the card moves itself to Discovery Booked within the hour. " +
+      "Still on New Lead after that means they did not pick a time, so it is worth a call.");
     fd.append("fb_event_id", eventId);
     fd.append("fb_fbc", cookie("_fbc"));
     fd.append("fb_fbp", cookie("_fbp"));
