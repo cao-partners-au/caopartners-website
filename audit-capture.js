@@ -78,26 +78,56 @@
     if (answers.indexOf(t) < 0) answers.push(t);
   }, true);
 
+  /* ONE PICKER, NOT TWO.
+     The asset chooses which rep's Calendly to embed with
+     Math.random() over BOOKING_URLS, while the CRM assigns the owner from
+     cao_RoundRobin in form-submit.js. Two independent pickers agree about half
+     the time, so a lead could sit with Gulliver while the meeting sat in
+     Jonathan's calendar, and a coin flip also drifts away from an even split at
+     the volumes this funnel runs at.
+     So the round robin decides and the iframe is repointed at whoever it named.
+     The swap happens within a second of the calendar appearing, while Calendly
+     is still loading, so the reader sees one calendar rather than a change. If
+     the call fails or names a rep we have no link for, the asset's own choice
+     stands: a booking with the wrong rep beats no booking at all. */
+  var CALENDLY = {
+    "jonathan@caopartners.com.au": "https://calendly.com/jonathan-caopartners/30min",
+    "gulliver@caopartners.com.au": "https://calendly.com/gulliver-caopartners/30min",
+  };
+
   /* Attribution passthrough into the booking.
      Calendly returns a `tracking` block (utm_source, utm_campaign, utm_content
      ...) on every invitee, and it is null unless the booking URL carries them.
      Forwarding the ad's own UTMs means the BOOKING carries the ad id too, so a
      booking can be tied back to the creative even though the lead was already
      captured a step earlier. Cheap, and it makes the two records agree. */
-  function decorateCalendar(box) {
+  function utmSuffix() {
+    var here = new URLSearchParams(location.search);
+    var keep = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+    var add = [];
+    for (var i = 0; i < keep.length; i++) {
+      var v = here.get(keep[i]);
+      if (v) add.push(keep[i] + "=" + encodeURIComponent(v));
+    }
+    return add.join("&");
+  }
+
+  /* Rebuild the iframe URL: the assigned rep's calendar if we know it, keeping
+     the asset's own display settings and prefilled name/email. */
+  function pointCalendar(box, repEmail) {
     try {
       var iframe = box.querySelector("iframe");
-      if (!iframe || iframe.dataset.utmDone) return;
-      var here = new URLSearchParams(location.search);
-      var keep = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
-      var add = [];
-      for (var i = 0; i < keep.length; i++) {
-        var v = here.get(keep[i]);
-        if (v) add.push(keep[i] + "=" + encodeURIComponent(v));
+      if (!iframe || iframe.dataset.wired) return;
+      var src = iframe.src;
+      var base = CALENDLY[String(repEmail || "").toLowerCase()];
+      if (base) {
+        var q = src.indexOf("?");
+        src = base + (q > -1 ? src.slice(q) : "");
       }
-      if (!add.length) { iframe.dataset.utmDone = "1"; return; }
-      iframe.dataset.utmDone = "1";
-      iframe.src = iframe.src + (iframe.src.indexOf("?") > -1 ? "&" : "?") + add.join("&");
+      var utm = utmSuffix();
+      if (utm) src += (src.indexOf("?") > -1 ? "&" : "?") + utm;
+      iframe.dataset.wired = "1";
+      if (src !== iframe.src) iframe.src = src;
     } catch (err) { /* attribution must never cost a booking */ }
   }
 
@@ -143,11 +173,18 @@
     fd.append("fb_fbc", cookie("_fbc"));
     fd.append("fb_fbp", cookie("_fbp"));
     fd.append("fb_source_url", location.href);
+    /* Ask for the assigned rep back rather than the usual 302, so the calendar
+       can be pointed at whoever the round robin named. */
+    fd.append("respond", "json");
 
     fetch(ENDPOINT, { method: "POST", body: fd })
-      .catch(function () { /* the reader is already choosing a time; never alarm them */ });
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { pointCalendar(box, j && j.assigned_to); })
+      .catch(function () { pointCalendar(box, null); });
 
-    decorateCalendar(box);
+    /* Belt and braces: if the round trip is slow, the UTMs still get on within
+       a moment and the asset's own rep choice stands. */
+    setTimeout(function () { pointCalendar(box, null); }, 4000);
   }
 
   /* Watch for the calendar replacing the form. The asset rewrites #app wholesale,

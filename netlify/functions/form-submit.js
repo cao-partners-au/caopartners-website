@@ -735,6 +735,16 @@ exports.handler = async (event) => {
         updated_at:   isoNow,
       });
       console.log(`[form-submit] enquire write: ${ok ? "OK" : "FAILED"}`);
+      /* WHO OWNS THIS LEAD, ANSWERED ONCE.
+         The /audit/ asset picks a rep for its Calendly iframe with Math.random(),
+         while this function assigns the CRM owner from cao_RoundRobin. Two
+         independent pickers agree about half the time, so a lead could sit with
+         Gulliver while the meeting sat in Jonathan's calendar, and the random
+         pick also skews the rota it is supposed to share.
+         So the round robin decides, and the page is told. Only the audit funnel
+         asks for this (respond=json); every other caller keeps the 302 exactly
+         as before. */
+      const wantsJson = String(fields.respond || "").toLowerCase() === "json";
       // Fire the server-side Meta Lead event only on a real new insert (not the dedup-skip
       // path above), so the event count stays honest. Awaited because the serverless
       // instance can freeze after we return; isolated so it can never break the redirect.
@@ -745,6 +755,17 @@ exports.handler = async (event) => {
       if (ok && fields.lead_source === "TikTok")        await sendTikTokLeadEvent(event, fields, "enquire");
       else if (ok && fields.lead_source === "Meta-CAO") await sendCaoMetaLeadEvent(event, fields, "enquire");
       else if (ok)                                      await sendMetaLeadEvent(event, fields, "enquire");
+      if (wantsJson) {
+        return {
+          statusCode: 200,
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+          body: JSON.stringify({
+            ok,
+            assigned_to: rep ? rep.email : null,
+            rep_name:    rep ? rep.name  : null,
+          }),
+        };
+      }
       return ok ? redirectTo("enquire") : REDIRECT;
     }
 
