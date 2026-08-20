@@ -187,23 +187,37 @@
       var fd = new FormData(form);
       fd.append('respond', 'json');
 
-      var fallback = function () {
-        // Submit natively, bypassing this listener so it cannot loop.
-        form.removeAttribute('data-book-now-enabled');
+      /* THE TURNSTILE TOKEN IS SINGLE USE, and this is the whole reason the two
+         failure paths differ.
+
+         If the request never reached the server (offline, DNS, CORS), the token
+         is untouched, so submitting natively is safe and the visitor gets the
+         behaviour they always had.
+
+         If the server DID answer, that token is spent. Resubmitting natively
+         would be rejected as a replay, and if the first attempt actually
+         inserted, it would risk a duplicate. So we never resubmit after a
+         reply: we send them to the normal thank-you page, which is exactly
+         where the old flow put them anyway. */
+      var resubmitNatively = function () {
+        form.removeAttribute('data-book-now-enabled');   // bypass this listener
         form.submit();
       };
+      var thankYou = function () { window.location.href = '/success?t=enquire'; };
 
       fetch(form.getAttribute('action'), { method: 'POST', body: fd })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (data) {
-          if (!data || !data.ok) { fallback(); return; }
-          if (!showCalendar(form, data)) {
-            // Lead IS saved; just nothing to book against. Send them to the
-            // normal thank-you rather than resubmitting and duplicating.
-            window.location.href = '/success?t=enquire';
-          }
+        .then(function (r) {
+          return r.json().catch(function () { return null; });   // 302/HTML -> null
         })
-        .catch(fallback);
+        .then(function (data) {
+          // Server answered. Token is spent either way, so never resubmit here.
+          if (!data || !data.ok) { thankYou(); return; }
+          if (!showCalendar(form, data)) thankYou();
+        })
+        .catch(function () {
+          // Never reached the server: the token is still good.
+          resubmitNatively();
+        });
     });
   });
 })();
