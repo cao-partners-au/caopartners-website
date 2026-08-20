@@ -800,7 +800,7 @@ fbq('track', 'PageView');
     </button>
     <h3 id="modal-hire-title">Hire a Chief Agent Officer</h3>
     <p class="modal-sub">Tell us about your business. We will be in touch within 24 hours.</p>
-    <form name="enquire" method="POST" action="/.netlify/functions/form-submit" enctype="multipart/form-data">
+    <form name="enquire" method="POST" action="/.netlify/functions/form-submit" enctype="multipart/form-data" data-book-now-enabled>
       <input type="hidden" name="form-name" value="enquire" />
       <!-- Meta CAPI: populated on submit so the server event shares an event_id with
            the client pixel (dedup) and carries the browser's fbp/fbc cookies. -->
@@ -1150,5 +1150,6 @@ void main() {
     });
   })();
 </script>
+<script src="/lead-form.js"></script>
 </body>
 </html>
