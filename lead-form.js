@@ -68,8 +68,89 @@
     return match ? 'fb.1.' + Date.now() + '.' + decodeURIComponent(match[1]) : '';
   }
 
+  /* ── BOOK NOW ────────────────────────────────────────────────────────────
+     A keen prospect should be able to take a time immediately rather than wait
+     to be chased, but NOT at the cost of the lead record.
+
+     ORDER IS EVERYTHING, AND IT PROTECTS ATTRIBUTION. The submission is posted
+     first and the lead is created with its full attribution (lead_source, the
+     ?src slug, fb_fbc, UTMs) before any calendar appears. Calendly is never in
+     the attribution path, it is something that happens AFTER the lead exists.
+     Someone who opens the calendar and abandons still leaves an attributed lead
+     with a phone number, which is strictly better than today, where they leave
+     with nothing.
+
+     FAILS BACK TO THE OLD BEHAVIOUR. If the fetch throws, the response is not
+     JSON, or the insert did not happen, the form is submitted natively exactly
+     as it always was and the visitor lands on /success. Losing a lead to a
+     clever booking flow would be a far worse trade than losing the booking. */
+  var CALENDLY = {
+    'jonathan@caopartners.com.au': 'https://calendly.com/jonathan-caopartners/30min',
+    'gulliver@caopartners.com.au': 'https://calendly.com/gulliver-caopartners/30min'
+  };
+
+  function fieldValue(form, name) {
+    var el = form.querySelector('[name="' + name + '"]');
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  /* Forward the ad UTMs into the booking. Calendly returns them on the invitee,
+     so the booking record names the same campaign the lead does. */
+  function utmSuffix() {
+    var keep = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    var here = window.location.search;
+    var out = [];
+    keep.forEach(function (k) {
+      var m = here.match(new RegExp('[?&]' + k + '=([^&]+)'));
+      if (m) out.push(k + '=' + m[1]);
+    });
+    return out.join('&');
+  }
+
+  function showCalendar(form, data) {
+    var base = CALENDLY[String(data.assigned_to || '').toLowerCase()];
+    if (!base) return false;   // unknown rep: nothing safe to show
+
+    var first = fieldValue(form, 'first_name');
+    var last = fieldValue(form, 'last_name');
+    var name = (first + ' ' + last).trim() || fieldValue(form, 'name');
+    var qs = 'hide_gdpr_banner=1&primary_color=1269ff' +
+      '&name=' + encodeURIComponent(name) +
+      '&email=' + encodeURIComponent(fieldValue(form, 'email'));
+    var utm = utmSuffix();
+    if (utm) qs += '&' + utm;
+
+    var box = document.createElement('div');
+    box.className = 'book-now';
+    box.setAttribute('data-book-now', '');
+    box.innerHTML =
+      '<p class="book-now-lede"><strong>Got it, we have your details.</strong> ' +
+      (data.rep_name ? data.rep_name.split(' ')[0] + ' will be in touch.' : 'We will be in touch.') +
+      ' If you would rather not wait, pick a time now.</p>' +
+      '<iframe title="Choose a time" loading="eager" src="' + base + '?' + qs + '"></iframe>' +
+      '<p class="book-now-note"><a href="/success?t=enquire">No thanks, I will wait to be contacted</a></p>';
+
+    form.parentNode.replaceChild(box, form);
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    /* Calendly posts a message to the parent when a time is taken. Telling the
+       CRM straight away is what stops the warm outreach cron emailing this
+       person a calendar link they have already used. */
+    window.addEventListener('message', function (e) {
+      if (!e.data || typeof e.data.event !== 'string') return;
+      if (e.data.event !== 'calendly.event_scheduled') return;
+      if (!data.lead_id) return;
+      fetch('/.netlify/functions/booking-confirmed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: data.lead_id })
+      }).catch(function () { /* the booking is already made; never alarm them */ });
+    });
+    return true;
+  }
+
   forms.forEach(function (form) {
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (ev) {
       var eventId = genId();
       var setField = function (name, value) {
         var field = form.querySelector('input[name="' + name + '"]');
@@ -96,6 +177,33 @@
       // CAPI (form-submit.js) now fires the sole Lead event, gated on a real DB insert,
       // and already carries strong PII match keys (hashed email/phone) — no browser
       // pixel needed for match quality.
+
+      // Book Now only applies to the client enquiry form. Candidate submissions
+      // go to a different lane with a different calendar, so they keep the
+      // native post untouched.
+      if (form.getAttribute('name') !== 'enquire' || !form.hasAttribute('data-book-now-enabled')) return;
+
+      ev.preventDefault();
+      var fd = new FormData(form);
+      fd.append('respond', 'json');
+
+      var fallback = function () {
+        // Submit natively, bypassing this listener so it cannot loop.
+        form.removeAttribute('data-book-now-enabled');
+        form.submit();
+      };
+
+      fetch(form.getAttribute('action'), { method: 'POST', body: fd })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (!data || !data.ok) { fallback(); return; }
+          if (!showCalendar(form, data)) {
+            // Lead IS saved; just nothing to book against. Send them to the
+            // normal thank-you rather than resubmitting and duplicating.
+            window.location.href = '/success?t=enquire';
+          }
+        })
+        .catch(fallback);
     });
   });
 })();

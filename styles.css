@@ -2177,3 +2177,23 @@ section { position: relative; }
   .tst-dot { transition: none; }
   .tst-viewport { transition: none; }
 }
+
+
+/* ── Book Now ───────────────────────────────────────────────────────────────
+   Replaces the enquiry form once the lead is saved, so a keen prospect can take
+   a time immediately instead of waiting to be chased. Injected by
+   /lead-form.js; the form is only replaced AFTER the CRM has the lead. */
+.book-now { display: flex; flex-direction: column; gap: 14px; }
+.book-now-lede { margin: 0; font-size: 16px; line-height: 1.6; }
+.book-now iframe {
+  width: 100%;
+  min-height: 680px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.book-now-note { margin: 0; font-size: 14px; opacity: 0.6; }
+.book-now-note a { color: inherit; text-decoration: underline; }
+@media (max-width: 600px) {
+  .book-now iframe { min-height: 760px; }
+}

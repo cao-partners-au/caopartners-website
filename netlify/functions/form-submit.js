@@ -702,8 +702,12 @@ exports.handler = async (event) => {
         return REDIRECT;
       }
       const rep = await getNextRep("BPS");
+      // Held so the JSON path can hand it back: the Book Now flow needs to name
+      // this exact lead when a booking is confirmed, and re-finding it by email
+      // would race the 90s duplicate window above.
+      const leadId = randomUUID();
       const ok  = await supabaseInsert("cao_Leads", {
-        id:           randomUUID(),
+        id:           leadId,
         submitted_at: isoNow,
         name,
         email:        (fields.email || "").toLowerCase().trim(),
@@ -761,6 +765,7 @@ exports.handler = async (event) => {
           headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
           body: JSON.stringify({
             ok,
+            lead_id:     ok ? leadId : null,
             assigned_to: rep ? rep.email : null,
             rep_name:    rep ? rep.name  : null,
           }),
