@@ -107,6 +107,25 @@
     return out.join('&');
   }
 
+  /* GOOGLE ADS CONVERSION, FIRED IN PLACE.
+     The conversion has always fired on /success loading, which Book Now no
+     longer visits: keeping the reader on the page to book means the thank-you
+     page is skipped, and with it the conversion. Google Ads traffic arrives on
+     the SEO pages as ?src=gads-… and converts on these very forms, so silently
+     dropping it would blind the bidding on the channel it is meant to optimise.
+     Label and value copied from success.html so both paths report identically.
+     Fired only after the server confirms the insert, same as the redirect was. */
+  function fireAdsConversion() {
+    try {
+      if (typeof window.gtag !== 'function') return;
+      window.gtag('event', 'conversion', {
+        send_to: 'AW-18020152935/uunuCK-l2YkcEOfs1pBD',
+        value: 1.0,
+        currency: 'AUD'
+      });
+    } catch (e) { /* reporting must never cost a booking */ }
+  }
+
   function showCalendar(form, data) {
     var base = CALENDLY[String(data.assigned_to || '').toLowerCase()];
     if (!base) return false;   // unknown rep: nothing safe to show
@@ -212,7 +231,10 @@
         .then(function (data) {
           // Server answered. Token is spent either way, so never resubmit here.
           if (!data || !data.ok) { thankYou(); return; }
-          if (!showCalendar(form, data)) thankYou();
+          // The lead is in. If the calendar takes over we never reach /success,
+          // so the conversion has to be reported from here instead.
+          if (showCalendar(form, data)) fireAdsConversion();
+          else thankYou();
         })
         .catch(function () {
           // Never reached the server: the token is still good.
