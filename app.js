@@ -692,18 +692,34 @@
       return b;
     });
 
-    function sizeToActive() {
-      // offsetHeight of the ACTIVE slide, not scrollHeight of the viewport: all
-      // slides share one grid cell, so the viewport always reports the tallest.
-      const active = slides[index];
-      if (active) viewport.style.height = active.offsetHeight + 'px';
+    /* HOLD THE TALLEST SLIDE'S HEIGHT, ALWAYS.
+       This used to size the viewport to whichever slide was showing and animate
+       between them. On a phone, where the card is narrow and a long quote runs
+       to many lines, the difference between the shortest and longest review is
+       most of a screen: the section grew and shrank every few seconds, shoving
+       whatever you were reading up and down the page. A reader mid-sentence in
+       the section below has no idea why the page is moving.
+       Measuring every slide and holding the maximum means the section reserves
+       its space once and never moves again. Shorter reviews simply leave space
+       below, which is invisible next to a page that jumps. */
+    function sizeToTallest() {
+      // Measure with the transition off, or a slide caught mid-fade reports a
+      // transformed height and the maximum comes out short.
+      const prevTransition = viewport.style.transition;
+      viewport.style.transition = 'none';
+      viewport.style.height = 'auto';
+      let tallest = 0;
+      slides.forEach((s) => { tallest = Math.max(tallest, s.offsetHeight); });
+      if (tallest) viewport.style.height = tallest + 'px';
+      // Force a reflow so restoring the transition cannot animate this change.
+      void viewport.offsetHeight;
+      viewport.style.transition = prevTransition;
     }
 
     function show(i) {
       index = (i + slides.length) % slides.length;
       slides.forEach((s, n) => s.classList.toggle('is-active', n === index));
       dots.forEach((d, n) => d.setAttribute('aria-selected', String(n === index)));
-      sizeToActive();
     }
 
     function stop() { if (timer) { clearInterval(timer); timer = null; } }
@@ -727,9 +743,12 @@
     });
 
     show(0);
-    // Re-measure once webfonts land, since Jost swapping in re-wraps the quotes.
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeToActive);
-    window.addEventListener('resize', sizeToActive);
+    sizeToTallest();
+    // Re-measure once webfonts land, since Jost swapping in re-wraps the quotes,
+    // and on resize, since the wrap changes with the column width. Both change
+    // the tallest slide; cycling never does.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeToTallest);
+    window.addEventListener('resize', sizeToTallest);
     // Stagger the two so they do not flip in lockstep, which reads as one widget.
     setTimeout(start, rootIndex * 2200);
   });

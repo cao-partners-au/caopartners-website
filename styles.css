@@ -2085,9 +2085,12 @@ section { position: relative; }
 .tst-viewport {
   display: grid;
   min-width: 0;
+  /* Height is set once by app.js to the TALLEST slide and then held, so
+     cycling never resizes the section. No height transition: there is no
+     longer a height change to animate, and leaving one in would animate the
+     re-measure on resize. */
   height: auto;
   overflow: hidden;
-  transition: height .45s cubic-bezier(.4, 0, .2, 1);
 }
 .tst-slide {
   grid-area: 1 / 1;
@@ -2175,7 +2178,6 @@ section { position: relative; }
 @media (prefers-reduced-motion: reduce) {
   .tst-slide { transition: none; transform: none; }
   .tst-dot { transition: none; }
-  .tst-viewport { transition: none; }
 }
 
 
