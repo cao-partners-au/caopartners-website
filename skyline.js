@@ -428,8 +428,13 @@
         ctx.stroke();
       });
 
-      // 2) Silhouette fill once mostly built
-      if (buildP > 0.55) {
+      /* 2) Silhouette fill once mostly built — TOWERS ONLY.
+         This fills the object's BOUNDING BOX. A tower is roughly a rectangle,
+         so the fill reads as its mass. A crane is a thin mast and a thin jib
+         inside a ~160x158 box, so the same fill paints a translucent square
+         hanging in the air around it: the "shadow" behind every crane, on
+         desktop as well as phones. Cranes are drawn as structure only. */
+      if (buildP > 0.55 && !b.isCrane) {
         const f = ((buildP - 0.55) / 0.45) * 0.10 * alpha;
         ctx.fillStyle = `rgba(${FILL}, ${f})`;
         ctx.fillRect(bx, by, b.w, b.h);
