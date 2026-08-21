@@ -26,14 +26,23 @@
 
   function makeBuilding(centerX, depth, delayStart, sizeHint) {
     sizeHint = sizeHint || {};
-    const widthBase  = sizeHint.widthBase  != null ? sizeHint.widthBase  : (80 + Math.random() * 120);
-    const heightBase = sizeHint.heightBase != null ? sizeHint.heightBase : (140 + Math.random() * 260);
+    /* MOBILE GEOMETRY IS A SHARE OF THE CANVAS, NOT FIXED PIXELS.
+       These numbers were tuned for a wide landscape canvas. On a phone the
+       frame is narrow and portrait, so 80-200px buildings drawn nine across
+       covered 320% of the width and collapsed into noise. Expressed as a
+       fraction they scale into whatever frame they are given. Desktop keeps
+       the original values exactly. */
+    const mob = W < 700;
+    const widthBase  = sizeHint.widthBase  != null ? sizeHint.widthBase
+      : (mob ? W * 0.20 + Math.random() * W * 0.16 : 80 + Math.random() * 120);
+    const heightBase = sizeHint.heightBase != null ? sizeHint.heightBase
+      : (mob ? H * 0.32 + Math.random() * H * 0.40 : 140 + Math.random() * 260);
     const w = widthBase * (1 - depth * 0.30);
     const h = heightBase * (1 - depth * 0.35);
     const opacity = 1 - depth * 0.45;
 
-    const cols = Math.max(2, Math.round(w / 18));
-    const rows = Math.max(4, Math.round(h / 20));
+    const cols = Math.max(2, Math.round(w / (mob ? 20 : 18)));
+    const rows = Math.max(4, Math.round(h / (mob ? 22 : 20)));
     const nodes = [];
 
     for (let i = 0; i <= cols; i++) {
@@ -86,12 +95,30 @@
   function spawn() {
     buildings = [];
     pulses = [];
-    const count = Math.max(9, Math.floor(W / 110));
+    const mob = W < 700;
+    // Three on a phone, against nine before. The max(9, ...) was written as a
+    // floor for wide screens and became a ceiling that never lifted on narrow ones.
+    const count = mob ? 3 : Math.max(9, Math.floor(W / 110));
 
     // Spawn the crane support + cranes FIRST so we can size the left edge
     // tower relative to the left crane's height.
     let leftCrane = null;
-    if (W > 700) {
+    if (mob) {
+      /* ONE CRANE, LIFTED INTO THE DEAD SPACE ABOVE THE HEADLINE.
+         Two cranes crowd a phone, and none loses the construction idea the
+         scene exists to carry. Where the jib lands is decided by the support
+         beneath it: at ~26% of the height it arrived level with "Ready to
+         rebuild?" and read as clutter behind the words. At ~46-52% the jib sits
+         near the top of the frame, which is the only area with nothing
+         competing for attention. */
+      const support = makeBuilding(W * 0.24, 0.10, 0.2, {
+        widthBase:  W * 0.20 + Math.random() * W * 0.06,
+        heightBase: H * 0.46 + Math.random() * H * 0.06,
+      });
+      buildings.push(support);
+      leftCrane = makeCraneOnTop(support, 'left');
+      buildings.push(leftCrane);
+    } else if (W > 700) {
       const leftSupport  = makeBuilding(W * 0.18, 0.10, 0.2, { widthBase: 95 + Math.random() * 30, heightBase: 170 + Math.random() * 70 });
       const rightSupport = makeBuilding(W * 0.82, 0.10, 0.4, { widthBase: 95 + Math.random() * 30, heightBase: 170 + Math.random() * 70 });
       buildings.push(leftSupport, rightSupport);
@@ -106,8 +133,14 @@
 
     for (let i = 0; i < count; i++) {
       const depth = Math.random() < 0.5 ? Math.random() * 0.35 : 0.35 + Math.random() * 0.55;
-      const slot = (i + 0.5) / count;
-      const jitter = (Math.random() - 0.5) * (W / count) * 0.55;
+      /* THE CRANE NEEDS ITS OWN SPACE. Mast plus jib plus counter-jib is
+         150-175px, which is 45% of a phone screen. Towers spread across the
+         full width sat on top of it and the silhouette dissolved into dots, so
+         on a phone they start clear of it. Desktop spans the full width. */
+      const bandFrom = mob ? 0.48 : 0;
+      const span = 1 - bandFrom;
+      const slot = bandFrom + ((i + 0.5) / count) * span;
+      const jitter = (Math.random() - 0.5) * (span * W / count) * 0.55;
       const cx = slot * W + jitter;
       // First few buildings start nearly immediately so motion is visible at once.
       const delay = i < 3 ? Math.random() * 0.4 : Math.random() * 5.0;
