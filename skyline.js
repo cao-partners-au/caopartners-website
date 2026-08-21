@@ -36,7 +36,9 @@
     const widthBase  = sizeHint.widthBase  != null ? sizeHint.widthBase
       : (mob ? W * 0.20 + Math.random() * W * 0.16 : 80 + Math.random() * 120);
     const heightBase = sizeHint.heightBase != null ? sizeHint.heightBase
-      : (mob ? H * 0.32 + Math.random() * H * 0.40 : 140 + Math.random() * 260);
+      // Tops land around y=200-320, which is below the headline (127) and
+      // behind the buttons, where a skyline belongs.
+      : (mob ? H * 0.28 + Math.random() * H * 0.28 : 140 + Math.random() * 260);
     const w = widthBase * (1 - depth * 0.30);
     const h = heightBase * (1 - depth * 0.35);
     const opacity = 1 - depth * 0.45;
@@ -113,7 +115,13 @@
          competing for attention. */
       const support = makeBuilding(W * 0.24, 0.10, 0.2, {
         widthBase:  W * 0.20 + Math.random() * W * 0.06,
-        heightBase: H * 0.46 + Math.random() * H * 0.06,
+        // Measured against the live section, not an assumed one: on a 390px
+        // phone the canvas is 447px tall, the headline occupies y=85-127 and
+        // the buttons y=271-315. A support at 60% of the height puts the crane
+        // top near y=12 and the jib around y=17-27, comfortably above the
+        // headline. The crane's own height cap (anchorTopY - 12) keeps it
+        // inside the canvas whatever the section height turns out to be.
+        heightBase: H * 0.60 + Math.random() * H * 0.04,
       });
       buildings.push(support);
       leftCrane = makeCraneOnTop(support, 'left');
@@ -146,8 +154,11 @@
       const delay = i < 3 ? Math.random() * 0.4 : Math.random() * 5.0;
       // Anchor the skyline with tall edge towers. Rightmost reaches near the
       // canvas top; leftmost sits just a touch above the left crane.
-      const isLeftEdge = i === 0;
-      const isRightEdge = i === count - 1;
+      // The tall-edge rules exist to anchor a WIDE skyline. In a 447px frame
+      // they produce a full-height tower that dominates the section and buries
+      // the text, so a phone gets three evenly sized towers instead.
+      const isLeftEdge = !mob && i === 0;
+      const isRightEdge = !mob && i === count - 1;
       let sizeHint;
       let edgeDepth = depth;
       if (isRightEdge) {
