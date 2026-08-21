@@ -216,6 +216,16 @@
       var utm = utmSuffix();
       if (utm) qs += "&" + utm;
 
+      /* THE CALENDAR IS A SCREEN CONTROL. These assets carry their own print
+         stylesheet and a PDF cover, and readers do save them. Left in, this
+         block prints as a blank 700px gap where an iframe used to be. */
+      if (!document.getElementById("bn-print-css")) {
+        var st = document.createElement("style");
+        st.id = "bn-print-css";
+        st.textContent = "@media print{[data-book-now]{display:none !important}}";
+        document.head.appendChild(st);
+      }
+
       var box = document.createElement("section");
       box.setAttribute("data-book-now", "");
       box.style.cssText = "max-width:900px;margin:56px auto 72px;padding:0 20px;" +
