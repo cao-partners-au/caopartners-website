@@ -125,6 +125,16 @@
       });
       buildings.push(support);
       leftCrane = makeCraneOnTop(support, 'left');
+      /* SIT THE MAST ON THE MIDDLE OF THE SUPPORT, NOT ITS EDGE.
+         makeCraneOnTop passes the support's centre as the CRANE's centre, but
+         the mast is not at the crane's centre: it sits counterLen + 4 +
+         mastW/2, about 40px, from the left edge, while the crane's centre is
+         half its ~160px width. So the mast landed ~40px left of the support
+         and the whole thing looked perched on the corner. Shifting the crane
+         right by that difference puts the mast over the middle of the tower
+         it is standing on. Phones only, since desktop supports are wide
+         enough that the offset does not read. */
+      leftCrane.cx += leftCrane.w / 2 - (30 + 4 + 12 / 2);
       buildings.push(leftCrane);
     } else if (W > 700) {
       const leftSupport  = makeBuilding(W * 0.18, 0.10, 0.2, { widthBase: 95 + Math.random() * 30, heightBase: 170 + Math.random() * 70 });
