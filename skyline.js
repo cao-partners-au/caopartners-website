@@ -211,6 +211,14 @@
     const counterLen = 30;
     const hookDrop = 26 + Math.random() * 10;
 
+    /* ON A PHONE THE CRANE IS THE FOCAL POINT, so its dots must not merge.
+       Each node draws a 7px glow. The jib packs 9 node-pairs across ~120px in
+       two rows 10px apart, which at that radius fuses into a single bright
+       mass rather than a lattice. Desktop gets away with it because the crane
+       is small against a wide scene; on a phone it is the thing you look at.
+       Fewer nodes, further apart, and a deeper jib so the two rows read as
+       two. */
+    const mob = W < 700;
     const padTop = 4;
     const w = mastW + jibLen + counterLen + 8;
     const h = mastH + cabinH + padTop + 6;
@@ -223,12 +231,12 @@
     const mastBaseY = h - 4;
     const mastTopY = cabinH + padTop;
     const jibTopY = padTop + 1;
-    const jibBotY = padTop + 11;
+    const jibBotY = padTop + (mob ? 17 : 11);
     const cabinTopY = padTop;
     const cabinBotY = mastTopY;
 
     // Mast — bottom-first delays so it builds upward
-    const mastRows = 12;
+    const mastRows = mob ? 8 : 12;
     for (let j = 0; j <= mastRows; j++) {
       const ly = mastBaseY - (j / mastRows) * (mastBaseY - mastTopY);
       const corner = j === 0 || j === mastRows;
@@ -244,7 +252,7 @@
     nodes.push({ lx: mastRight + 4, ly: cabinTopY, delay: 0.03, corner: true, edge: true });
 
     // Jib — long arm
-    const jibSegments = 9;
+    const jibSegments = mob ? 5 : 9;
     for (let i = 1; i <= jibSegments; i++) {
       const lx = mastRight + (i / jibSegments) * jibLen;
       const t = i / jibSegments;
@@ -254,7 +262,7 @@
     }
 
     // Counter-jib — short arm
-    const counterSegments = 3;
+    const counterSegments = mob ? 2 : 3;
     for (let i = 1; i <= counterSegments; i++) {
       const lx = mastLeft - (i / counterSegments) * counterLen;
       const t = i / counterSegments;
