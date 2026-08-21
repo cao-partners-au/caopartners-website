@@ -167,6 +167,85 @@
     if (mapped) { buf.company_size = mapped; buf.size_said = t; }
   }, true);
 
+
+  /* ── BOOK NOW, BELOW THE REPORT ──────────────────────────────────────────
+     A build-plan reader used to leave with nothing to do next: the report
+     rendered, the lead landed on New Lead, and it sat there until a rep found
+     time to ring. That gap is the whole cost of this funnel, and the reader is
+     never keener than in the minute they finish reading their own diagnosis.
+
+     BELOW, NOT INSTEAD. The report is what they came for, so the calendar is
+     appended after it rather than replacing it the way /audit/ does. Someone
+     who has read all five builds is a better prospect than someone who bounced
+     at the top, and hijacking the page would cost exactly those readers.
+
+     ATTRIBUTION IS UNAFFECTED. The lead is already written by the time this
+     runs; the calendar is a step that happens afterwards. Same order as the
+     enquiry forms and /audit/.
+
+     Failing to show it costs nothing: the reader still has their report and the
+     rep still has the lead, which is precisely today's behaviour. */
+  var CALENDLY = {
+    "jonathan@caopartners.com.au": "https://calendly.com/jonathan-caopartners/30min",
+    "gulliver@caopartners.com.au": "https://calendly.com/gulliver-caopartners/30min"
+  };
+
+  function utmSuffix() {
+    var keep = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+    var here = location.search, out = [];
+    for (var i = 0; i < keep.length; i++) {
+      var m = here.match(new RegExp("[?&]" + keep[i] + "=([^&]+)"));
+      if (m) out.push(keep[i] + "=" + m[1]);
+    }
+    return out.join("&");
+  }
+
+  /* Styles are inline because these pages are generated and self-contained:
+     borrowing a class from the asset would break the day Oscar renames it. */
+  function addBooking(data) {
+    try {
+      if (document.querySelector("[data-book-now]")) return;
+      var base = CALENDLY[String(data.assigned_to || "").toLowerCase()];
+      if (!base) return;
+
+      var report = document.getElementById("report") || document.body;
+      var first = (data.rep_name || "").split(" ")[0] || "one of our team";
+      var qs = "hide_gdpr_banner=1&background_color=04050f&text_color=f8fafc&primary_color=1269ff" +
+        "&name=" + encodeURIComponent(((buf.first_name || "") + " " + (buf.last_name || "")).trim()) +
+        "&email=" + encodeURIComponent(buf.email || "");
+      var utm = utmSuffix();
+      if (utm) qs += "&" + utm;
+
+      var box = document.createElement("section");
+      box.setAttribute("data-book-now", "");
+      box.style.cssText = "max-width:900px;margin:56px auto 72px;padding:0 20px;" +
+        "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;";
+      box.innerHTML =
+        '<div style="border-top:1px solid rgba(255,255,255,.12);padding-top:36px">' +
+          '<h2 style="font-size:24px;font-weight:500;margin:0 0 8px;color:#f8fafc;letter-spacing:-.3px">' +
+            'Want to walk through this?</h2>' +
+          '<p style="margin:0 0 20px;color:rgba(248,250,252,.6);font-size:16px;line-height:1.6">' +
+            first + ' can take you through the builds above and where to start. ' +
+            'Thirty minutes, no cost. Pick a time that suits.</p>' +
+          '<iframe title="Choose a time" loading="lazy" src="' + base + '?' + qs + '" ' +
+            'style="width:100%;min-height:700px;border:0;border-radius:12px"></iframe>' +
+        '</div>';
+      report.parentNode.insertBefore(box, report.nextSibling);
+
+      /* Tell the CRM the moment a time is taken, so the warm outreach cron does
+         not email a calendar link to someone who has just used one. */
+      window.addEventListener("message", function (e) {
+        if (!e.data || e.data.event !== "calendly.event_scheduled") return;
+        if (!data.lead_id) return;
+        fetch("/.netlify/functions/booking-confirmed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lead_id: data.lead_id })
+        }).catch(function () { /* the booking is made; never alarm them */ });
+      });
+    } catch (err) { /* the report is the promise; a missing calendar is not fatal */ }
+  }
+
   function fire() {
     if (sent) return;                    // the class can be re-added on re-render
 
@@ -221,7 +300,12 @@
     fd.append("fb_fbp", cookie("_fbp"));
     fd.append("fb_source_url", location.href);
 
+    // Ask for the assigned rep back so the calendar below the report is theirs.
+    fd.append("respond", "json");
+
     fetch(ENDPOINT, { method: "POST", body: fd })
+      .then(function (r) { return r.json().catch(function () { return null; }); })
+      .then(function (data) { if (data && data.ok) addBooking(data); })
       .catch(function () { /* the reader already has their report; never alarm them */ });
   }
 
