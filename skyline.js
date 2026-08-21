@@ -100,7 +100,7 @@
     const mob = W < 700;
     // Three on a phone, against nine before. The max(9, ...) was written as a
     // floor for wide screens and became a ceiling that never lifted on narrow ones.
-    const count = mob ? 3 : Math.max(9, Math.floor(W / 110));
+    const count = mob ? 4 : Math.max(9, Math.floor(W / 110));
 
     // Spawn the crane support + cranes FIRST so we can size the left edge
     // tower relative to the left crane's height.
@@ -145,7 +145,13 @@
          150-175px, which is 45% of a phone screen. Towers spread across the
          full width sat on top of it and the silhouette dissolved into dots, so
          on a phone they start clear of it. Desktop spans the full width. */
-      const bandFrom = mob ? 0.48 : 0;
+      /* THE BAND IS NO LONGER NEEDED, AND IT LEFT THE BOTTOM-LEFT BARE.
+         It was added when the phone towers were 32-72% of the frame and did
+         climb through the crane. They are now 28-56%, so their tops land
+         around y=200-320 while the crane occupies y=12-179: they cannot reach
+         it. Confining them to the right half bought nothing and cost half the
+         skyline. */
+      const bandFrom = 0;
       const span = 1 - bandFrom;
       const slot = bandFrom + ((i + 0.5) / count) * span;
       const jitter = (Math.random() - 0.5) * (span * W / count) * 0.55;
