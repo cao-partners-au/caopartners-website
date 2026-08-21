@@ -160,17 +160,29 @@
       const delay = i < 3 ? Math.random() * 0.4 : Math.random() * 5.0;
       // Anchor the skyline with tall edge towers. Rightmost reaches near the
       // canvas top; leftmost sits just a touch above the left crane.
-      // The tall-edge rules exist to anchor a WIDE skyline. In a 447px frame
-      // they produce a full-height tower that dominates the section and buries
-      // the text, so a phone gets three evenly sized towers instead.
+      /* The tall-edge rules exist to anchor a WIDE skyline. In a 447px frame
+         the desktop versions produce a FULL height tower that buries the text,
+         so a phone does not use them. But switching them off entirely left a
+         bare strip down the far left, because the crane's support sits at 24%
+         and nothing reached above the ordinary towers before it. The leftmost
+         phone tower is therefore taller than its neighbours, ~68-78% of the
+         frame, which fills that column to just under the headline without
+         climbing through it. */
       const isLeftEdge = !mob && i === 0;
       const isRightEdge = !mob && i === count - 1;
+      const isPhoneLeft = mob && i === 0;
       let sizeHint;
       let edgeDepth = depth;
       if (isRightEdge) {
         edgeDepth = 0.04;
         const mult = 1 - edgeDepth * 0.35;
         sizeHint = { widthBase: 130 + Math.random() * 25, heightBase: Math.max(380, (H - 10) / mult) };
+      } else if (isPhoneLeft) {
+        edgeDepth = 0.30;   // set back, so it reads behind the crane
+        sizeHint = {
+          widthBase:  W * 0.16 + Math.random() * W * 0.06,
+          heightBase: H * 0.68 + Math.random() * H * 0.10,
+        };
       } else if (isLeftEdge) {
         edgeDepth = 0.06;
         const mult = 1 - edgeDepth * 0.35;
