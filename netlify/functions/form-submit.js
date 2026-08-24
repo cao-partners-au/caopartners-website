@@ -606,6 +606,15 @@ exports.handler = async (event) => {
     // ByteDance/China IP confirms review-bot; anything else means real spam. Stashed into
     // lead_source_detail ONLY when the funnel didn't already set it (organic keeps its
     // page slug; TikTok/Meta leave it null, so they get the source). Remove once identified.
+    // LinkedIn hands us the AD SET id in utm_id on every ad click. That is a far more
+    // useful lead_source_detail than the diagnostic origin string, and it is the thing
+    // that answers "which ad produced this lead" — so build it here and let the two
+    // insert paths below prefer it.
+    const liDetail = fields.lead_source === "LinkedIn" && (fields.utm_id || fields.utm_campaign)
+      ? [fields.utm_id ? `adset=${fields.utm_id}` : null,
+         fields.utm_campaign ? `campaign=${fields.utm_campaign}` : null].filter(Boolean).join(" ")
+      : null;
+
     const h = event.headers || {};
     const clientSrc =
       `ip=${h["x-nf-client-connection-ip"] || (h["x-forwarded-for"] || "").split(",")[0].trim() || "?"}` +
@@ -631,7 +640,7 @@ exports.handler = async (event) => {
     // base-funnel gap (Tue 21 Jul: Meta 5, CRM 2). The honeypot + disposable-domain gate
     // above still applies to these, so they aren't left unprotected.
     const inAppUA = isInAppBrowser(h["user-agent"] || h["User-Agent"]);
-    if (fields.lead_source !== "TikTok" && fields.lead_source !== "Meta-CAO" && !inAppUA) {
+    if (fields.lead_source !== "TikTok" && fields.lead_source !== "Meta-CAO" && fields.lead_source !== "LinkedIn" && !inAppUA) {
       const tsFail = await turnstileReason(fields, event);
       if (tsFail) {
         console.log(`[form-submit] SPAM blocked (${tsFail}) email="${fields.email}" name="${name}"`);
@@ -678,7 +687,7 @@ exports.handler = async (event) => {
         // lead_source in a hidden field; the base /become form leaves it null,
         // which reads as "Direct / Unattributed" — never as a specific channel.
         lead_source:         fields.lead_source || null,
-        lead_source_detail:  fields.lead_source_detail || clientSrc,
+        lead_source_detail:  fields.lead_source_detail || liDetail || clientSrc,
         cv_url:              cvUrl || null,
         created_at:          isoNow,
         updated_at:          isoNow,
@@ -734,7 +743,7 @@ exports.handler = async (event) => {
         lead_source:        fields.lead_source || (fields.fb_fbc ? "Creator Army" : null),
         // Keep the funnel's own detail (organic page slug); otherwise stash the captured
         // source so a synthetic/bot submission reveals its origin in Supabase directly.
-        lead_source_detail: fields.lead_source_detail || clientSrc,
+        lead_source_detail: fields.lead_source_detail || liDetail || clientSrc,
         created_at:   isoNow,
         updated_at:   isoNow,
       });

@@ -97,7 +97,11 @@
   /* Forward the ad UTMs into the booking. Calendly returns them on the invitee,
      so the booking record names the same campaign the lead does. */
   function utmSuffix() {
-    var keep = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    // utm_id carries LinkedIn's AD SET id (added automatically by the account-level
+    // URL parameters). Without it in this list the ad set is lost the moment the
+    // reader moves to the booking step, which is where the useful half of the
+    // attribution question gets answered.
+    var keep = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id'];
     var here = window.location.search;
     var out = [];
     keep.forEach(function (k) {
@@ -180,6 +184,17 @@
       setField('fb_fbp', readCookie('_fbp'));
       setField('fb_fbc', deriveFbc(readCookie('_fbc')));
       setField('fb_source_url', window.location.href);
+
+      // LinkedIn attribution, for the sealed /hire/form/li funnel. Reuses the same
+      // event id so a future Conversions API call dedupes against the browser event
+      // exactly the way Meta's and TikTok's do.
+      setField('li_event_id', eventId);
+      setField('li_fat_id', readCookie('li_fat_id'));
+      setField('li_source_url', window.location.href);
+      ['utm_id', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) {
+        var m = window.location.search.match(new RegExp('[?&]' + k + '=([^&]+)'));
+        setField(k, m ? decodeURIComponent(m[1]) : '');
+      });
 
       // Stamp organic attribution only when the page hasn't already declared a
       // channel (the sealed TikTok / Meta-CAO forms hardcode lead_source).
