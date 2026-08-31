@@ -747,6 +747,18 @@ exports.handler = async (event) => {
         // runs CA's Meta pixel (942963975160100) and CA is the only paid Meta spend pointed
         // at it, so credit them. No fb_fbc => genuinely direct/organic (stays null). Our own
         // ad funnels (/tt, /cao) set lead_source explicitly and are unaffected.
+        /* CALENDAR-FIRST FUNNELS SUPPRESS THE WARM OUTREACH EMAIL.
+           /olc/ ends on a Calendly embed: the member picks a time on the spot.
+           The warm cron takes any lead with outreach_email_sent not true and
+           deal_status New Lead, so it emailed a One Life Club member "thanks for
+           reaching out, book a time" moments after they had done exactly that.
+           There is a safety net — the hourly pipeline advancer moves bookers to
+           Discovery Booked, which the cron skips — but outreach runs six times a
+           day and wins that race often enough to matter.
+           Non-bookers are not abandoned: they sit on New Lead, which is what the
+           lead-SLA board is for, and a human follow-up beats an automated email
+           that contradicts the page they just used. */
+        outreach_email_sent: fields.lead_source === "OLC" ? true : null,
         lead_source:        fields.lead_source || (fields.fb_fbc ? "Creator Army" : null),
         // Keep the funnel's own detail (organic page slug); otherwise stash the captured
         // source so a synthetic/bot submission reveals its origin in Supabase directly.
