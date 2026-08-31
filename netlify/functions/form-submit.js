@@ -765,9 +765,15 @@ exports.handler = async (event) => {
       //   TikTok leads   -> TikTok Events API (dedupes with the /tt page's browser Lead)
       //   Meta-CAO leads -> CAO in-house Meta CAPI (dedupes with the /cao page's browser Lead)
       //   everything else -> Meta CAPI (creator army's funnel, unchanged)
+      /* Channels that own no Meta event must not fall through to the creator
+         army's pixel. LinkedIn reports through its own Insight Tag, and OLC is
+         a community intake with no ad click behind it at all, so firing a Lead
+         for either would put leads the creator army never sourced into their
+         dataset and teach their optimiser on traffic it did not win. */
+      const NO_META_FALLBACK = fields.lead_source === "LinkedIn" || fields.lead_source === "OLC";
       if (ok && fields.lead_source === "TikTok")        await sendTikTokLeadEvent(event, fields, "enquire");
       else if (ok && fields.lead_source === "Meta-CAO") await sendCaoMetaLeadEvent(event, fields, "enquire");
-      else if (ok)                                      await sendMetaLeadEvent(event, fields, "enquire");
+      else if (ok && !NO_META_FALLBACK)                 await sendMetaLeadEvent(event, fields, "enquire");
       if (wantsJson) {
         return {
           statusCode: 200,
