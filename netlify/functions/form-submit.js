@@ -640,7 +640,14 @@ exports.handler = async (event) => {
     // base-funnel gap (Tue 21 Jul: Meta 5, CRM 2). The honeypot + disposable-domain gate
     // above still applies to these, so they aren't left unprotected.
     const inAppUA = isInAppBrowser(h["user-agent"] || h["User-Agent"]);
-    if (fields.lead_source !== "TikTok" && fields.lead_source !== "Meta-CAO" && fields.lead_source !== "LinkedIn" && !inAppUA) {
+    // OLC is excluded for the same reason, from the other direction: that page is a
+    // co-branded asset dropped into the One Life Club community and carries no Turnstile
+    // widget, so it can never produce a token. The gate would reject every member who
+    // filled it in AND return the success redirect, so they would see a booking calendar
+    // and we would get nothing. Exactly the failure this comment already describes, which
+    // is how the first live test vanished. Honeypot + disposable-domain still apply.
+    const TURNSTILE_EXEMPT = ["TikTok", "Meta-CAO", "LinkedIn", "OLC"];
+    if (!TURNSTILE_EXEMPT.includes(fields.lead_source) && !inAppUA) {
       const tsFail = await turnstileReason(fields, event);
       if (tsFail) {
         console.log(`[form-submit] SPAM blocked (${tsFail}) email="${fields.email}" name="${name}"`);
