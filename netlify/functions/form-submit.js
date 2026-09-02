@@ -758,7 +758,13 @@ exports.handler = async (event) => {
            Non-bookers are not abandoned: they sit on New Lead, which is what the
            lead-SLA board is for, and a human follow-up beats an automated email
            that contradicts the page they just used. */
-        outreach_email_sent: fields.lead_source === "OLC" ? true : null,
+        /* Boolean NOT NULL with a default of false, so it must never receive an
+           explicit null. Sending `null` for non-OLC leads violated the constraint
+           and silently killed EVERY other funnel's insert for hours: the visitor
+           still saw the success page, the browser pixel still fired, and the lead
+           reached Meta but never the CRM. A plain comparison yields true/false and
+           can never be null. */
+        outreach_email_sent: fields.lead_source === "OLC",
         lead_source:        fields.lead_source || (fields.fb_fbc ? "Creator Army" : null),
         // Keep the funnel's own detail (organic page slug); otherwise stash the captured
         // source so a synthetic/bot submission reveals its origin in Supabase directly.
