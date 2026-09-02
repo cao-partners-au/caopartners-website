@@ -192,10 +192,87 @@ async function supabaseInsert(table, payload) {
   );
   if (res.status >= 300) {
     console.error(`Supabase insert failed (${res.status}): ${res.body}`);
+    /* A failed insert is the most expensive silent failure this function has.
+       Everything else still succeeds around it: the visitor gets the success
+       page, the browser pixel fires a Lead, Meta counts the conversion and the
+       ad set keeps spending. Only the row is missing, and nothing notices.
+       That is exactly how an explicit null into a NOT NULL column ate every
+       non-OLC lead for two and a half days (31 Aug to 3 Sep 2026) and was
+       eventually found by eye, on an ad report, rather than by any alarm.
+       Raise it where it happens so the next one surfaces in minutes. Deduped
+       per table + status, so a sustained outage is one row with a climbing
+       count rather than thousands. Never throws: an alerting failure must not
+       take the form handler down with it. */
+    await raiseInsertAlert(table, res.status, res.body).catch(() => {});
     return false;
   }
   console.log(`Supabase insert OK (${res.status})`);
   return true;
+}
+
+
+/**
+ * Raise (or bump) a cao_Alerts row when a Supabase insert fails.
+ *
+ * Written against the table directly rather than importing the CRM's
+ * scripts/lib-alerts.ts: this is a different repo and a Netlify function, so
+ * it cannot reach that module. Same dedupe semantics though, so the CRM's
+ * alerts UI treats these rows exactly like the cron-raised ones.
+ */
+async function raiseInsertAlert(table, status, body) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return;
+  const dedupeKey = `form-submit:insert-failed:${table}:${status}`;
+  const now = new Date().toISOString();
+  const headers = {
+    "Authorization": `Bearer ${SUPABASE_KEY}`,
+    "apikey": SUPABASE_KEY,
+    "Content-Type": "application/json",
+  };
+  // Bump an existing unresolved row rather than piling up duplicates.
+  const found = await httpsRequest(
+    `${SUPABASE_URL}/rest/v1/cao_Alerts?select=id,occurrences&dedupe_key=eq.${encodeURIComponent(dedupeKey)}&resolved_at=is.null`,
+    "GET", headers,
+  );
+  let existing = [];
+  try { existing = JSON.parse(found.body || "[]"); } catch {}
+
+  const message =
+    `A ${table} insert returned ${status}, so the submission was lost. The visitor still saw ` +
+    `the success page and any ad pixel still fired, so the platform will report a lead the CRM ` +
+    `does not have and the ad set will keep spending. Supabase said: ${String(body).slice(0, 400)}`;
+
+  if (existing.length) {
+    const row = existing[0];
+    const patch = JSON.stringify({
+      occurrences: (row.occurrences ?? 1) + 1,
+      last_seen_at: now,
+      message,
+      acknowledged_at: null,
+      acknowledged_by: null,
+      updated_at: now,
+    });
+    await httpsRequest(
+      `${SUPABASE_URL}/rest/v1/cao_Alerts?id=eq.${row.id}`,
+      "PATCH", { ...headers, "Content-Length": Buffer.byteLength(patch), Prefer: "return=minimal" }, patch,
+    );
+    return;
+  }
+  const insert = JSON.stringify({
+    dedupe_key: dedupeKey,
+    source: "form-submit",
+    severity: "critical",
+    title: `Lead capture is failing: ${table} insert returned ${status}`,
+    message,
+    occurrences: 1,
+    first_seen_at: now,
+    last_seen_at: now,
+    created_at: now,
+    updated_at: now,
+  });
+  await httpsRequest(
+    `${SUPABASE_URL}/rest/v1/cao_Alerts`,
+    "POST", { ...headers, "Content-Length": Buffer.byteLength(insert), Prefer: "return=minimal" }, insert,
+  );
 }
 
 // ── Supabase Storage upload ───────────────────────────────────────────────────
