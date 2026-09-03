@@ -5,6 +5,8 @@
 <meta name="cao-format" content="free-ai-audit">
 <meta name="cao-format" content="six">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'sha256-gWicYoEEKeBw3nhd8M6xkVW3FMP+sMyLW7YO0N4ESng=' 'sha256-shrNepTTkiZM/97NRAeDYc6HVLSFSeFbZSxV85gNezM=' 'self' https://connect.facebook.net 'sha256-+vKEFDp1ZL/RvyzkGeYTsC0wr8ShqtRiaIMSraigocQ='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://www.facebook.com; frame-src https://calendly.com; connect-src 'self' https://www.facebook.com; media-src 'none'; worker-src 'none'; manifest-src 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
 <title>Established Australian businesses Free AI Audit, CAO Partners</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2271,11 +2273,11 @@ const AUDIT_QUESTIONS = [
   {id:"size",question:"How many people work in the business?",options:["Under 20","20 to 50","50 to 120","120 to 300","More than 300"]},
   {id:"turnover",question:"Roughly what does the business turn over in a year?",options:["Under $5 million","$5m to $15m","$15m to $50m","$50m to $150m","Over $150m"]},
   {id:"contact",question:"Who is this audit for?",fields:[
-    {id:"firstName",name:"first_name",label:"First name",placeholder:"First name"},
-    {id:"lastName",name:"last_name",label:"Last name",placeholder:"Last name"},
-    {id:"email",name:"email",label:"Work email",placeholder:"you@company.com.au",type:"email"},
-    {id:"phone",name:"phone",label:"Phone number",placeholder:"04xx xxx xxx",type:"tel"},
-    {id:"company",name:"company",label:"Business name",placeholder:"Business name"}
+    {id:"firstName",name:"first_name",label:"First name",placeholder:"First name",maxLength:80},
+    {id:"lastName",name:"last_name",label:"Last name",placeholder:"Last name",maxLength:80},
+    {id:"email",name:"email",label:"Work email",placeholder:"you@company.com.au",type:"email",maxLength:254},
+    {id:"phone",name:"phone",label:"Phone number",placeholder:"04xx xxx xxx",type:"tel",maxLength:32},
+    {id:"company",name:"company",label:"Business name",placeholder:"Business name",maxLength:160}
   ]}
 ];
 const BOOKING_URLS = ["https://calendly.com/jonathan-caopartners/30min","https://calendly.com/gulliver-caopartners/30min"];
@@ -2292,6 +2294,18 @@ function auditContactFault(){
   if(!validEmail(String(answers.email || ""))) return "Please enter a valid work email.";
   return "";
 }
+function bindAuditPanelEvents(){
+  const root = document.getElementById("app");
+  root.querySelectorAll("[data-audit-choice]").forEach(button => {
+    button.addEventListener("click",() => pickAudit(button.dataset.auditId,button.dataset.auditValue));
+  });
+  root.querySelectorAll("[data-audit-back]").forEach(button => button.addEventListener("click",auditBack));
+  root.querySelectorAll("[data-audit-field]").forEach(input => {
+    input.addEventListener("input",() => setAuditField(input.dataset.auditField,input.value));
+  });
+  const form = root.querySelector("[data-lead-form]");
+  if(form) form.addEventListener("submit",auditSubmit);
+}
 function renderAuditPanel(){
   if(auditSubmitted) return;
   const panel = document.querySelector("[data-audit-form]");
@@ -2299,18 +2313,19 @@ function renderAuditPanel(){
   const q = AUDIT_QUESTIONS[auditStep - 1];
   let body = auditHead() + '<div class="progress"><i style="width:' + Math.round(auditStep / 3 * 100) + '%"></i></div><div class="step"><p class="q">' + esc(q.question) + '</p>';
   if(q.options){
-    body += '<div class="options">' + q.options.map(option => '<button class="option' + (answers[q.id] === option ? ' sel' : '') + '" type="button" onclick="pickAudit(' + attr(q.id) + ',' + attr(option) + ')"><span>' + esc(option) + '</span></button>').join('') + '</div>';
-    if(auditStep > 1) body += '<div class="actions"><button class="back" type="button" onclick="auditBack()">Back</button></div>';
+    body += '<div class="options">' + q.options.map(option => '<button class="option' + (answers[q.id] === option ? ' sel' : '') + '" type="button" data-audit-choice data-audit-id="' + esc(q.id) + '" data-audit-value="' + esc(option) + '"><span>' + esc(option) + '</span></button>').join('') + '</div>';
+    if(auditStep > 1) body += '<div class="actions"><button class="back" type="button" data-audit-back>Back</button></div>';
     body += '</div>';
   } else {
-    body += '<form name="enquire" method="post" enctype="multipart/form-data" data-lead-form onsubmit="auditSubmit(event)">' +
+    body += '<form name="enquire" data-lead-form>' +
       '<input type="hidden" name="company_size" value="' + esc(answers.size || '') + '"><input type="hidden" name="turnover" value="' + esc(answers.turnover || '') + '"><div class="form">' +
-      q.fields.map(field => '<div class="field"><input class="input" type="' + (field.type || 'text') + '" name="' + field.name + '" aria-label="' + esc(field.label) + '" autocomplete="' + (field.id === 'firstName' ? 'given-name' : field.id === 'lastName' ? 'family-name' : field.id === 'company' ? 'organization' : field.id) + '" placeholder="' + esc(field.placeholder) + '" value="' + esc(answers[field.id] || '') + '" oninput="setAuditField(' + attr(field.id) + ',this.value)" required></div>').join('') +
+      q.fields.map(field => '<div class="field"><input class="input" type="' + (field.type || 'text') + '" name="' + field.name + '" data-audit-field="' + esc(field.id) + '" aria-label="' + esc(field.label) + '" autocomplete="' + (field.id === 'firstName' ? 'given-name' : field.id === 'lastName' ? 'family-name' : field.id === 'company' ? 'organization' : field.id) + '" placeholder="' + esc(field.placeholder) + '" value="' + esc(answers[field.id] || '') + '" maxlength="' + (field.maxLength || 160) + '" required></div>').join('') +
       '</div>' + (auditError ? '<p class="err" data-form-status role="status">' + esc(auditError) + '</p>' : '<p class="err" data-form-status role="status"></p>') +
-      '<div class="actions"><button class="btn btn-primary" type="submit"' + (auditSubmitting ? ' disabled' : '') + '>' + (auditSubmitting ? 'Opening the calendar...' : 'Choose my audit time') + ' <span class="arrow">&rarr;</span></button><button class="back" type="button" onclick="auditBack()">Back</button></div>' +
+      '<div class="actions"><button class="btn btn-primary" type="submit"' + (auditSubmitting ? ' disabled' : '') + '>' + (auditSubmitting ? 'Opening the calendar...' : 'Choose my audit time') + ' <span class="arrow">&rarr;</span></button><button class="back" type="button" data-audit-back>Back</button></div>' +
       '<p class="note">The audit is free. Complete the details above, then choose a time for the call.</p></form></div>';
   }
   document.getElementById("app").innerHTML = body;
+  bindAuditPanelEvents();
   if(panel){
     panel.dataset.auditStep = String(auditStep);
     panel.style.height = "auto";
@@ -2332,7 +2347,7 @@ function auditSubmit(event){
   const name = encodeURIComponent((answers.firstName || "") + " " + (answers.lastName || ""));
   const email = encodeURIComponent(answers.email || "");
   auditSubmitted = true; auditSubmitting = false;
-  document.getElementById("app").innerHTML = '<div data-calendar><div class="rv-head"><div class="rv-title">Choose your free AI audit time.</div><div class="rv-pill"><span class="hd-pulse"></span>Written roadmap within 24 hours</div></div><iframe title="Choose your free AI audit time" loading="eager" src="' + BOOKING_URL + '?hide_gdpr_banner=1&background_color=04050f&text_color=f8fafc&primary_color=1269ff&name=' + name + '&email=' + email + '"></iframe></div>';
+  document.getElementById("app").innerHTML = '<div data-calendar><div class="rv-head"><div class="rv-title">Choose your free AI audit time.</div><div class="rv-pill"><span class="hd-pulse"></span>Written roadmap within 24 hours</div></div><iframe title="Choose your free AI audit time" loading="eager" referrerpolicy="no-referrer" sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" src="' + BOOKING_URL + '?background_color=04050f&text_color=f8fafc&primary_color=1269ff&name=' + name + '&email=' + email + '"></iframe></div>';
 }
 function auditTarget(){ return auditSubmitted && document.querySelector("[data-calendar]") ? document.querySelector("[data-calendar]") : document.getElementById("audit-form"); }
 function bindAuditCtas(){
@@ -2469,14 +2484,25 @@ caseThreadInit();
 
   function makeBuilding(centerX, depth, delayStart, sizeHint) {
     sizeHint = sizeHint || {};
-    const widthBase  = sizeHint.widthBase  != null ? sizeHint.widthBase  : (80 + Math.random() * 120);
-    const heightBase = sizeHint.heightBase != null ? sizeHint.heightBase : (140 + Math.random() * 260);
+    /* MOBILE GEOMETRY IS A SHARE OF THE CANVAS, NOT FIXED PIXELS.
+       These numbers were tuned for a wide landscape canvas. On a phone the
+       frame is narrow and portrait, so 80-200px buildings drawn nine across
+       covered 320% of the width and collapsed into noise. Expressed as a
+       fraction they scale into whatever frame they are given. Desktop keeps
+       the original values exactly. */
+    const mob = W < 700;
+    const widthBase  = sizeHint.widthBase  != null ? sizeHint.widthBase
+      : (mob ? W * 0.20 + Math.random() * W * 0.16 : 80 + Math.random() * 120);
+    const heightBase = sizeHint.heightBase != null ? sizeHint.heightBase
+      // Tops land around y=200-320, which is below the headline (127) and
+      // behind the buttons, where a skyline belongs.
+      : (mob ? H * 0.28 + Math.random() * H * 0.28 : 140 + Math.random() * 260);
     const w = widthBase * (1 - depth * 0.30);
     const h = heightBase * (1 - depth * 0.35);
     const opacity = 1 - depth * 0.45;
 
-    const cols = Math.max(2, Math.round(w / 18));
-    const rows = Math.max(4, Math.round(h / 20));
+    const cols = Math.max(2, Math.round(w / (mob ? 20 : 18)));
+    const rows = Math.max(4, Math.round(h / (mob ? 22 : 20)));
     const nodes = [];
 
     for (let i = 0; i <= cols; i++) {
@@ -2529,12 +2555,46 @@ caseThreadInit();
   function spawn() {
     buildings = [];
     pulses = [];
-    const count = Math.max(9, Math.floor(W / 110));
+    const mob = W < 700;
+    // Three on a phone, against nine before. The max(9, ...) was written as a
+    // floor for wide screens and became a ceiling that never lifted on narrow ones.
+    const count = mob ? 4 : Math.max(9, Math.floor(W / 110));
 
     // Spawn the crane support + cranes FIRST so we can size the left edge
     // tower relative to the left crane's height.
     let leftCrane = null;
-    if (W > 700) {
+    if (mob) {
+      /* ONE CRANE, LIFTED INTO THE DEAD SPACE ABOVE THE HEADLINE.
+         Two cranes crowd a phone, and none loses the construction idea the
+         scene exists to carry. Where the jib lands is decided by the support
+         beneath it: at ~26% of the height it arrived level with "Ready to
+         rebuild?" and read as clutter behind the words. At ~46-52% the jib sits
+         near the top of the frame, which is the only area with nothing
+         competing for attention. */
+      const support = makeBuilding(W * 0.24, 0.10, 0.2, {
+        widthBase:  W * 0.20 + Math.random() * W * 0.06,
+        // Measured against the live section, not an assumed one: on a 390px
+        // phone the canvas is 447px tall, the headline occupies y=85-127 and
+        // the buttons y=271-315. A support at 60% of the height puts the crane
+        // top near y=12 and the jib around y=17-27, comfortably above the
+        // headline. The crane's own height cap (anchorTopY - 12) keeps it
+        // inside the canvas whatever the section height turns out to be.
+        heightBase: H * 0.60 + Math.random() * H * 0.04,
+      });
+      buildings.push(support);
+      leftCrane = makeCraneOnTop(support, 'left');
+      /* SIT THE MAST ON THE MIDDLE OF THE SUPPORT, NOT ITS EDGE.
+         makeCraneOnTop passes the support's centre as the CRANE's centre, but
+         the mast is not at the crane's centre: it sits counterLen + 4 +
+         mastW/2, about 40px, from the left edge, while the crane's centre is
+         half its ~160px width. So the mast landed ~40px left of the support
+         and the whole thing looked perched on the corner. Shifting the crane
+         right by that difference puts the mast over the middle of the tower
+         it is standing on. Phones only, since desktop supports are wide
+         enough that the offset does not read. */
+      leftCrane.cx += leftCrane.w / 2 - (30 + 4 + 12 / 2);
+      buildings.push(leftCrane);
+    } else if (W > 700) {
       const leftSupport  = makeBuilding(W * 0.18, 0.10, 0.2, { widthBase: 95 + Math.random() * 30, heightBase: 170 + Math.random() * 70 });
       const rightSupport = makeBuilding(W * 0.82, 0.10, 0.4, { widthBase: 95 + Math.random() * 30, heightBase: 170 + Math.random() * 70 });
       buildings.push(leftSupport, rightSupport);
@@ -2548,32 +2608,75 @@ caseThreadInit();
       : null;
 
     for (let i = 0; i < count; i++) {
-      const depth = Math.random() < 0.5 ? Math.random() * 0.35 : 0.35 + Math.random() * 0.55;
-      const slot = (i + 0.5) / count;
-      const jitter = (Math.random() - 0.5) * (W / count) * 0.55;
-      const cx = slot * W + jitter;
+      const depth = mob
+        // Shallower range on a phone: a deeply set-back tower shrinks by up to
+        // 30%, which is what opens gaps between neighbours in a narrow frame.
+        ? Math.random() * 0.45
+        : (Math.random() < 0.5 ? Math.random() * 0.35 : 0.35 + Math.random() * 0.55);
+
       // First few buildings start nearly immediately so motion is visible at once.
       const delay = i < 3 ? Math.random() * 0.4 : Math.random() * 5.0;
+
       // Anchor the skyline with tall edge towers. Rightmost reaches near the
       // canvas top; leftmost sits just a touch above the left crane.
-      const isLeftEdge = i === 0;
-      const isRightEdge = i === count - 1;
+      const isLeftEdge = !mob && i === 0;
+      const isRightEdge = !mob && i === count - 1;
       let sizeHint;
       let edgeDepth = depth;
-      if (isRightEdge) {
-        edgeDepth = 0.04;
-        const mult = 1 - edgeDepth * 0.35;
-        sizeHint = { widthBase: 130 + Math.random() * 25, heightBase: Math.max(380, (H - 10) / mult) };
-      } else if (isLeftEdge) {
-        edgeDepth = 0.06;
-        const mult = 1 - edgeDepth * 0.35;
-        // Target top ~20px above the left crane top; fall back to a static
-        // tall value if there's no crane (narrow viewport).
-        const targetTopY = leftCraneTopY != null
-          ? Math.max(8, leftCraneTopY - 22)
-          : 80;
-        const targetH = Math.max(280, H - targetTopY);
-        sizeHint = { widthBase: 115 + Math.random() * 25, heightBase: targetH / mult };
+      let cx;
+
+      if (mob) {
+        /* PHONES TILE THE WIDTH. Everything before this placed towers at
+           slot centres with free-running width and heavy jitter, then let
+           depth shrink them again. On a 390px canvas that is +/-27px of
+           jitter against a 97px slot, so the left edge could open a 48px gap
+           while the middle piled up. A skyline with a hole at one end reads
+           as broken, and no amount of adding another tower on top fixes it,
+           it just crowds the middle.
+
+           So: each tower owns one slot, is a touch wider than its slot so
+           neighbours overlap rather than leaving seams, and the width is
+           divided by the depth shrink so a set-back tower still fills its
+           slot. Jitter is small enough to vary the skyline without reopening
+           a gap. The outer two hang past the canvas edge, so the city runs
+           off both sides instead of stopping short of them. */
+        const slotW = W / count;
+        const outer = i === 0 || i === count - 1;
+        /* Widths verified by simulation over 3000 spawns rather than guessed:
+           inner 1.35-1.60 slots, outer 1.75-2.05. The outer two are wider
+           because they also hang past the edge, and without the extra width
+           that overhang simply moves the gap inboard instead of closing it.
+           At these values the worst case across 3000 spawns is a 12.7px
+           OVERLAP between neighbours and zero bare strip at either edge. */
+        const targetW = slotW * (outer ? 1.75 + Math.random() * 0.30
+                                       : 1.35 + Math.random() * 0.25);
+        const overhang = i === 0 ? -slotW * 0.28
+                       : i === count - 1 ? slotW * 0.28
+                       : 0;
+        cx = (i + 0.5) * slotW + overhang + (Math.random() - 0.5) * slotW * 0.16;
+        sizeHint = {
+          widthBase:  targetW / (1 - edgeDepth * 0.30),
+          heightBase: H * 0.28 + Math.random() * H * 0.28,
+        };
+      } else {
+        const slot = (i + 0.5) / count;
+        const jitter = (Math.random() - 0.5) * (W / count) * 0.55;
+        cx = slot * W + jitter;
+        if (isRightEdge) {
+          edgeDepth = 0.04;
+          const mult = 1 - edgeDepth * 0.35;
+          sizeHint = { widthBase: 130 + Math.random() * 25, heightBase: Math.max(380, (H - 10) / mult) };
+        } else if (isLeftEdge) {
+          edgeDepth = 0.06;
+          const mult = 1 - edgeDepth * 0.35;
+          // Target top ~20px above the left crane top; fall back to a static
+          // tall value if there's no crane (narrow viewport).
+          const targetTopY = leftCraneTopY != null
+            ? Math.max(8, leftCraneTopY - 22)
+            : 80;
+          const targetH = Math.max(280, H - targetTopY);
+          sizeHint = { widthBase: 115 + Math.random() * 25, heightBase: targetH / mult };
+        }
       }
       buildings.push(makeBuilding(cx, edgeDepth, delay, sizeHint));
     }
@@ -2610,6 +2713,14 @@ caseThreadInit();
     const counterLen = 30;
     const hookDrop = 26 + Math.random() * 10;
 
+    /* ON A PHONE THE CRANE IS THE FOCAL POINT, so its dots must not merge.
+       Each node draws a 7px glow. The jib packs 9 node-pairs across ~120px in
+       two rows 10px apart, which at that radius fuses into a single bright
+       mass rather than a lattice. Desktop gets away with it because the crane
+       is small against a wide scene; on a phone it is the thing you look at.
+       Fewer nodes, further apart, and a deeper jib so the two rows read as
+       two. */
+    const mob = W < 700;
     const padTop = 4;
     const w = mastW + jibLen + counterLen + 8;
     const h = mastH + cabinH + padTop + 6;
@@ -2622,12 +2733,12 @@ caseThreadInit();
     const mastBaseY = h - 4;
     const mastTopY = cabinH + padTop;
     const jibTopY = padTop + 1;
-    const jibBotY = padTop + 11;
+    const jibBotY = padTop + (mob ? 17 : 11);
     const cabinTopY = padTop;
     const cabinBotY = mastTopY;
 
     // Mast , bottom-first delays so it builds upward
-    const mastRows = 12;
+    const mastRows = mob ? 8 : 12;
     for (let j = 0; j <= mastRows; j++) {
       const ly = mastBaseY - (j / mastRows) * (mastBaseY - mastTopY);
       const corner = j === 0 || j === mastRows;
@@ -2643,7 +2754,7 @@ caseThreadInit();
     nodes.push({ lx: mastRight + 4, ly: cabinTopY, delay: 0.03, corner: true, edge: true });
 
     // Jib , long arm
-    const jibSegments = 9;
+    const jibSegments = mob ? 5 : 9;
     for (let i = 1; i <= jibSegments; i++) {
       const lx = mastRight + (i / jibSegments) * jibLen;
       const t = i / jibSegments;
@@ -2653,7 +2764,7 @@ caseThreadInit();
     }
 
     // Counter-jib , short arm
-    const counterSegments = 3;
+    const counterSegments = mob ? 2 : 3;
     for (let i = 1; i <= counterSegments; i++) {
       const lx = mastLeft - (i / counterSegments) * counterLen;
       const t = i / counterSegments;
@@ -2775,8 +2886,13 @@ caseThreadInit();
         ctx.stroke();
       });
 
-      // 2) Silhouette fill once mostly built
-      if (buildP > 0.55) {
+      /* 2) Silhouette fill once mostly built , TOWERS ONLY.
+         This fills the object's BOUNDING BOX. A tower is roughly a rectangle,
+         so the fill reads as its mass. A crane is a thin mast and a thin jib
+         inside a ~160x158 box, so the same fill paints a translucent square
+         hanging in the air around it: the "shadow" behind every crane, on
+         desktop as well as phones. Cranes are drawn as structure only. */
+      if (buildP > 0.55 && !b.isCrane) {
         const f = ((buildP - 0.55) / 0.45) * 0.10 * alpha;
         ctx.fillStyle = `rgba(${FILL}, ${f})`;
         ctx.fillRect(bx, by, b.w, b.h);

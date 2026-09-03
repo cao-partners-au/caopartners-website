@@ -24,6 +24,7 @@
  */
 import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 
 const SRC_REPO = process.argv[2];
 const VERSION = process.argv[3];
@@ -74,6 +75,55 @@ const FOOT = `${FOOT_OPEN}
 </div>
 ${FOOT_CLOSE}`;
 
+/**
+ * The upstream asset ships its own Content Security Policy, added in
+ * 2026-08-21.1. It is written for a standalone page and knows nothing about the
+ * three things this script injects, so left alone it silently kills all of
+ * them: the Meta pixel (script-src lists two inline hashes and no host),
+ * /audit-capture.js (same reason), and every lead (connect-src 'none' blocks
+ * the fetch to form-submit). A CSP violation logs to the console and nothing
+ * else, so the ads would keep spending against a page that captures nobody.
+ *
+ * So we widen exactly three directives and leave the rest of his hardening
+ * intact. Done here rather than in the generated file because wire() rebuilds
+ * index.html from upstream on every run — a hand-edit would not survive.
+ */
+const CSP_GRANTS = {
+  "script-src": ["'self'", "https://connect.facebook.net"],
+  "connect-src": ["'self'", "https://www.facebook.com"],
+  "img-src": ["https://www.facebook.com"],
+};
+
+function relaxCsp(html) {
+  // Our pixel bootstrap is an INLINE script. script-src already carries
+  // hashes, which makes 'unsafe-inline' inert in every modern browser, so the
+  // only way to run it is to add its own hash. Computed from BLOCK rather than
+  // hard-coded so it stays correct if the pixel id or snippet ever changes.
+  const inlineHashes = [...BLOCK.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+    (m) => `'sha256-${createHash("sha256").update(m[1], "utf8").digest("base64")}'`
+  );
+  const grants = { ...CSP_GRANTS, "script-src": [...CSP_GRANTS["script-src"], ...inlineHashes] };
+  return html.replace(
+    /(<meta http-equiv="Content-Security-Policy" content=")([^"]*)(")/i,
+    (_all, open, policy, close) => {
+      const out = policy.split(";").map((part) => {
+        const t = part.trim();
+        if (!t) return null;
+        const name = t.split(/\s+/)[0];
+        const g = grants[name];
+        if (!g) return t;
+        // 'none' must be the only value in a directive. Once we grant a
+        // source the directive is no longer "nothing", so drop it or the
+        // whole directive is malformed.
+        const tokens = t.split(/\s+/).filter((x) => x !== "'none'");
+        const missing = g.filter((x) => !tokens.includes(x));
+        return [...tokens, ...missing].join(" ");
+      }).filter(Boolean);
+      return open + out.join("; ") + close;
+    }
+  );
+}
+
 function strip(html) {
   return html
     .replace(new RegExp(`${MARK_OPEN}[\\s\\S]*?${MARK_CLOSE}\\s*`, "g"), "")
@@ -87,7 +137,8 @@ function wire(html) {
   const withHead = clean.slice(0, head) + BLOCK + "\n" + clean.slice(head);
   const body = withHead.lastIndexOf("</body>");
   if (body < 0) throw new Error("no </body> — cannot inject the privacy link");
-  return withHead.slice(0, body) + FOOT + "\n" + withHead.slice(body);
+  const withFoot = withHead.slice(0, body) + FOOT + "\n" + withHead.slice(body);
+  return relaxCsp(withFoot);
 }
 
 if (!existsSync(DIST)) {
