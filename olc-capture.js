@@ -97,22 +97,61 @@
   }
 
   /* Rebuild the iframe URL: the assigned rep's calendar if we know it, keeping
-     the asset's own display settings and prefilled name/email. */
+     the asset's own display settings and prefilled name/email.
+
+     THE ORDERING MATTERS, and getting it wrong is invisible. The first version
+     of this wired whatever it had after a 4s timeout and stamped the iframe as
+     done. When form-submit took longer than that — it inserts a row and mirrors
+     the lead to Meta before answering — the timeout ran first with no rep, the
+     asset's random pick was stamped in, and the real answer was then dropped on
+     the floor. Half of those coin flips named the wrong rep. That is how
+     Dr. Saranjeet Singh came to be assigned to Jonathan on 4 Sep 2026 while his
+     meeting sat in Gulliver's calendar, reproducible by delaying form-submit
+     past four seconds.
+
+     So: remember the rep whenever it arrives, never mark the iframe finished
+     until a rep has actually been applied, and only fall back to the asset's own
+     choice once the grace period has genuinely expired. */
+  var assignedRep = null;   // whoever the round robin named, once it answers
+  var repApplied = false;   // the iframe already points at that rep
+  var graceOver = false;    // waited long enough; the asset's own pick may stand
+
   function pointCalendar(box, repEmail) {
+    if (repEmail) assignedRep = repEmail;
     try {
+      if (repApplied) return;
       var iframe = box.querySelector("iframe");
-      if (!iframe || iframe.dataset.wired) return;
+      /* The asset renders the calendar box before the iframe inside it. Return
+         quietly rather than giving up: the poller below calls again. */
+      if (!iframe) return;
+      var base = CALENDLY[String(assignedRep || "").toLowerCase()];
+      /* Nothing useful to write yet, and still time to wait. Writing UTMs now
+         would only mean a second src change, and a visible calendar reload,
+         when the rep does arrive. */
+      if (!base && !graceOver) return;
+
       var src = iframe.src;
-      var base = CALENDLY[String(repEmail || "").toLowerCase()];
       if (base) {
         var q = src.indexOf("?");
         src = base + (q > -1 ? src.slice(q) : "");
+        repApplied = true;
       }
       var utm = utmSuffix();
-      if (utm) src += (src.indexOf("?") > -1 ? "&" : "?") + utm;
-      iframe.dataset.wired = "1";
+      if (utm && src.indexOf("utm_source=") < 0) src += (src.indexOf("?") > -1 ? "&" : "?") + utm;
       if (src !== iframe.src) iframe.src = src;
     } catch (err) { /* attribution must never cost a booking */ }
+  }
+
+  /* Keep trying until the rep is applied. Covers both the iframe arriving after
+     the answer and the answer arriving after the iframe. */
+  function watchCalendar(box) {
+    var started = Date.now();
+    var t = setInterval(function () {
+      var waited = Date.now() - started;
+      if (waited > 6000) graceOver = true;
+      pointCalendar(box, null);
+      if (repApplied || waited > 20000) clearInterval(t);
+    }, 250);
   }
 
   function fire(box) {
@@ -157,9 +196,9 @@
       .then(function (j) { pointCalendar(box, j && j.assigned_to); })
       .catch(function () { pointCalendar(box, null); });
 
-    /* Belt and braces: if the round trip is slow, the UTMs still get on within
-       a moment and the asset's own rep choice stands. */
-    setTimeout(function () { pointCalendar(box, null); }, 4000);
+    /* Belt and braces, without the old race: the poller keeps looking and only
+       lets the asset's own pick stand once the grace period is genuinely up. */
+    watchCalendar(box);
   }
 
   /* Watch for the calendar replacing the form. The asset rewrites #app wholesale,
