@@ -332,6 +332,64 @@ async function getNextRep(role) {
   }
 }
 
+// ── Existing owner ───────────────────────────────────────────────────────────
+/* A RETURNING PROSPECT KEEPS THEIR REP.
+   getNextRep only alternates, and the one duplicate check in front of it
+   (isRecentDuplicate) is a 90-second double-click guard on the exact email.
+   So anyone who came back later, through a second ad, a different form or a
+   new work address, was treated as brand new and handed to whichever rep was
+   next. Mo Ahmed (Haute Kitchens) was Gulliver's prospect with a completed
+   discovery call; on 9 Sep 2026 he came in again through the AI Audit ad as
+   ma@ instead of hk@, went to Jonathan, and booked Jonathan's calendar while
+   Gulliver booked his own follow-up. Five prospects since August had ended up
+   with both reps, three of them on the identical email every time.
+
+   Match the phone's last nine digits, the exact email, or the company email
+   domain (free mail excluded), newest lead first, and honour only an owner who
+   is still in the rep pool: a lead left with a departed rep goes back into the
+   rotation. Nothing here advances cao_RoundRobin, so the next genuinely new
+   lead still goes to whoever was due. A failed lookup falls through to the
+   round robin, because a lead with the rotation's rep beats no lead at all. */
+const FREE_MAIL = /^(gmail|googlemail|outlook|hotmail|live|msn|yahoo|icloud|me|mac|bigpond|optusnet|aol|protonmail|proton)\./i;
+
+async function existingOwner(email, phone, reps) {
+  if (!ROUND_ROBIN_ENABLED || !SUPABASE_URL || !SUPABASE_KEY) return null;
+  const clauses = [];
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.length >= 9) clauses.push(`phone.like.*${digits.slice(-9)}`);
+  const e = String(email || "").toLowerCase().trim();
+  if (/^[^\s@,()"]+@[^\s@,()"]+\.[^\s@,()"]+$/.test(e)) {
+    clauses.push(`email.eq.${e}`);
+    const domain = e.split("@")[1];
+    if (domain && !FREE_MAIL.test(domain)) clauses.push(`email.ilike.*@${domain}`);
+  }
+  if (!clauses.length) return null;
+  try {
+    const rows = await supabaseGet(
+      `cao_Leads?select=assigned_to,rep_name,created_at&or=${encodeURIComponent(`(${clauses.join(",")})`)}&order=created_at.desc&limit=20`
+    );
+    if (!Array.isArray(rows)) return null;
+    for (const row of rows) {
+      const held = [row.assigned_to, row.rep_name].map((v) => String(v || "").toLowerCase().trim());
+      const rep = reps.find((r) => {
+        const local = r.email.split("@")[0];
+        const first = r.name.split(" ")[0].toLowerCase();
+        return held.some((h) => h === r.email || h.split("@")[0] === local || h.split(/[\s/,]+/)[0] === first);
+      });
+      if (rep) {
+        console.log(`[existing-owner] returning prospect -> ${rep.email}`);
+        return rep;
+      }
+    }
+    return null;
+  } catch (err) {
+    console.error("[existing-owner] lookup failed, falling back to round robin:", err.message);
+    return null;
+  }
+}
+// Read-only test seam: lets the lookup be exercised against real rows without a submission.
+exports._existingOwner = existingOwner;
+
 // ── Parse multipart form (Netlify passes raw body + headers) ─────────────────
 async function parseMultipart(event) {
   const contentType = event.headers["content-type"] || event.headers["Content-Type"] || "";
@@ -794,7 +852,10 @@ exports.handler = async (event) => {
         console.log(`[form-submit] duplicate enquire submission within 90s for ${email} — skipping`);
         return REDIRECT;
       }
-      const rep = await getNextRep("BPS");
+      /* A returning prospect keeps their rep; only genuinely new people go
+         through the rotation. See existingOwner. */
+      const owner = await existingOwner(email, fields.phone, BPS_REPS);
+      const rep = owner || await getNextRep("BPS");
       // Held so the JSON path can hand it back: the Book Now flow needs to name
       // this exact lead when a booking is confirmed, and re-finding it by email
       // would race the 90s duplicate window above.
@@ -812,7 +873,7 @@ exports.handler = async (event) => {
         rep_name:     rep ? rep.name : null,
         // Round-robin intake assignment — powers the CRM Sales Hub source split.
         // (Manual/batch reassigns in the CRM stamp "system" instead.)
-        assignment_source: rep ? "round_robin" : null,
+        assignment_source: owner ? "existing_owner" : (rep ? "round_robin" : null), // existing_owner: a returning prospect kept by their rep
         assigned_at:       rep ? isoNow : null,
         state:        fields.state || null,
         notes:        fields.message || null,
