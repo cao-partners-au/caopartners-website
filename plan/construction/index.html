@@ -1374,10 +1374,7 @@ body.done #founders { display:none; }
 .sec-cta { display:flex; justify-content:center; margin-top:30px; }
 
 </style>
-<!-- wired:begin -->
-<!-- Injected by scripts/wire-lead-magnets.mjs. Do not edit here or in the
-     source repo: the source is generated and this block is re-stamped on every
-     deploy. Change the script instead. -->
+<!-- sms-delivery:tracking -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
@@ -1388,12 +1385,7 @@ fbq('init','1656519126480896');fbq('track','PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
  src="https://www.facebook.com/tr?id=1656519126480896&ev=PageView&noscript=1"/></noscript>
-<!-- The generated pages declare no icon, so every browser asks for
-     /favicon.ico and gets a 404. Cosmetic, but these are paid landing
-     pages and a blank tab icon is the first thing a reader sees. -->
 <link rel="icon" href="/favicon.svg">
-<script src="/lm-capture.js" defer></script>
-<!-- wired:end -->
 </head>
 <body>
 
@@ -1411,7 +1403,7 @@ fbq('init','1656519126480896');fbq('track','PageView');
          design lock clean, and dropping the href takes it out of the tab order
          with it. -->
     <span class="logo">
-      <img class="logo-svg" src="/plan/_shared/logo.svg" alt="CAO Partners" />
+      <img class="logo-svg" src="logo.svg" alt="CAO Partners" />
     </span>
     <span class="meta">The AI Build Plan</span>
   </div>
@@ -1576,6 +1568,12 @@ fbq('init','1656519126480896');fbq('track','PageView');
 --------------------------------------------------------------------------- */
 
 const SET = {
+  /* THE PLAN IS NOT IN THIS FILE. inject-deliver.mjs kept only what the
+     five questions need and dropped everything the report used:
+     noun, pdf, builds, roleLede, roleCards, closingNote, readbackLead, sec01, sec02, sec03, sec05.
+     The build plan is served by the CRM at /en/build-plan/{token}, and the
+     only route to that token is the text message. */
+
   /* THE SIX FORMAT. Five questions, five builds, no score and no bill.
 
      Michael capped the question count and killed per-asset custom workflows, so
@@ -1590,141 +1588,6 @@ const SET = {
      EDIT THE CONFIG, NEVER THIS FILE: a re-run overwrites everything here. */
 
   asset: "The AI Build Plan",
-  noun: "construction business",
-
-  /* THE DOWNLOAD. Oscar 2026-08-18: the reader downloads a file we rendered,
-     and nothing on their device renders anything.
-
-     Michael's copy came back with the margins compressed, because the old
-     button called `window.print()` and handed the document to whoever's print
-     dialog was open. Paper size, margins and scale were all theirs. Rendering
-     it server-side in headless Chrome would have moved the variance rather
-     than removed it: it is still a render, just one we own. A static file has
-     no render step at all, so the bytes the reader opens are the bytes that
-     were committed, on every device, every time.
-
-     The file is built by `_verify/masterpdf.py` and checked by
-     `_verify/pdfmargins.py`. It sits beside this page, which is why the path
-     is bare. `_shell/stage.py` rewrites it if the shipped filename differs
-     from the splice name. */
-  pdf: "construction-ai-build-plan.pdf",
-
-
-  /* The five, in this industry's own pain rank. All five walk, every time. */
-  builds: [
-    {
-      key:"jobsync",
-      plain:"It moves the job between your systems so nothing is typed twice",
-      title:"The Job Sync Agent",
-      lede:"The job is entered once and lands in every system you already pay for, without anyone retyping it.",
-      label:"Systems that do not talk",
-      proof:"",
-      problem:{ title:"The same job is typed into four systems", line:"Quote, schedule, accounts and job management each get the details entered by hand, and every pass can add an error." },
-      nodes:[
-        { id:"n1", name:"The quote is marked won", line:"Winning the work is the only trigger. Nothing downstream waits on someone remembering.", tools:["HubSpot", "Pipedrive"], inp:"a quote marked won", outp:"one job, started everywhere at once", today:"Someone opens four systems and types the same job into each one.", operator:"One status change starts everything that follows." },
-        { id:"n2", name:"It reads before it writes", line:"Read-only access to every source system first, so nothing can be corrupted while the shape is still being proven.", tools:["Xero", "Procore", "simPRO"], inp:"what each system already holds", outp:"a picture of where the job really is", today:"Whoever is entering it is also the only check that it went in right.", operator:"It looks at what each system already holds before it changes any of them." },
-        { id:"n3", name:"One job record is assembled", line:"The job exists once, in one place, with every system's version reconciled against it.", tools:["Postgres", "Airtable", "n8n"], inp:"four half-versions of the job", outp:"one record every system reads from", today:"Four half-versions of the same job, and the real one is whichever you opened last.", operator:"One record, and every system reads from the same one." },
-        { id:"b1", name:"Two systems disagree", branch:true, after:"n3", line:"A mismatch stops and asks rather than picking a winner quietly.", tools:["Slack", "Microsoft Teams"], inp:"two values that do not match", outp:"one answer, and it is remembered", today:"The mismatch is found weeks later, usually by the invoice.", operator:"You are asked once, and the answer is remembered." },
-        { id:"n4", name:"You confirm the job is real", line:"One human gate before anything is written back. This is the gate that never gets automated away.", tools:[], inp:"the assembled job, ready to write", outp:"your confirmation, once", today:"No gate, because there is no system to gate.", operator:"One confirmation, and only on the jobs it is unsure about." },
-        { id:"n5", name:"It writes the job back to all three", line:"Job management, the accounting file and the schedule all receive the same job at the same moment.", tools:["simPRO", "Xero", "Buildertrend"], inp:"the confirmed job record", outp:"three systems holding the same job", today:"Three separate entries, three chances to get it wrong.", operator:"One write, three systems, no re-entering." },
-        { id:"n6", name:"It runs beside your live system first", line:"A shadow copy runs in parallel until you trust it, and it never writes to a source system before that.", tools:["n8n", "Make"], inp:"a month of real jobs", outp:"proof it agrees with you before it touches anything", today:"Any new system is a leap of faith on day one.", operator:"You watch it agree with you for a month before it touches anything." },
-        { id:"n7", name:"The client hears the status without anyone typing", line:"The update comes off the record itself, so no one has to remember to send it.", tools:["Twilio", "Gmail"], inp:"a change on the job record", outp:"the client already knows", today:"The client rings because no one told them.", operator:"They already know, and no one wrote the message." }
-      ]
-    },
-    {
-      key:"quote",
-      plain:"It prices off your rate library and drafts the tender pack",
-      title:"The Quote Turnaround Agent",
-      lede:"The takeoff runs itself off your own rate library. You still set the price.",
-      label:"Quoting and tendering",
-      proof:"",
-      problem:{ title:"Quoting eats days before anyone has won anything", line:"The takeoff, the pricing and the document are three separate jobs, and they happen around everything else." },
-      nodes:[
-        { id:"n1", name:"The tender pack arrives", line:"A PDF, a set of drawings, a scope of works. It starts with what the client actually sends.", tools:["Outlook", "Estimate One"], inp:"the client's tender pack", outp:"reading already under way", today:"It sits until someone has a clear day, which is how quotes go out late.", operator:"Reading starts the moment it lands." },
-        { id:"n2", name:"It reads the scope and the drawings", line:"Scope items pulled out and matched to the trades and quantities they imply.", tools:["Claude", "Bluebeam"], inp:"drawings and a scope of works", outp:"the measured quantities, by trade", today:"An estimator reads all of it, every time, before any pricing starts.", operator:"The reading is done. The estimator starts at the judgement." },
-        { id:"n3", name:"Each takeoff runs as its own step", line:"A long tender is many small steps, each of which can fail and restart without losing the ones before it.", tools:["Temporal", "n8n"], inp:"one long tender", outp:"steps that survive an interruption", today:"One interruption and the whole afternoon restarts.", operator:"It picks up where it stopped." },
-        { id:"n4", name:"Priced off your own rate library", line:"Your rates, your margins, your suppliers. Never a number the model invented.", tools:["Buildxact", "CostX", "Databuild"], inp:"the measured quantities", outp:"a priced schedule, on your rates", today:"Rates are looked up by hand from the last similar job.", operator:"Every line prices off the library, and the library is the only source." },
-        { id:"b1", name:"An item has no rate", branch:true, after:"n4", line:"An unpriced item is surfaced as a question, never estimated silently.", tools:["Slack"], inp:"a line with no rate behind it", outp:"a rate you set once, kept for next time", today:"A guess goes in and no one remembers it was a guess.", operator:"You price the new item once, and the library keeps it." },
-        { id:"n5", name:"The estimator signs the number", line:"The human gate on the only thing that matters. Nothing leaves without it.", tools:[], inp:"a priced schedule", outp:"a number someone owns", today:"The estimator does the whole job, so the sign-off is the least of it.", operator:"The estimator does only this." },
-        { id:"n6", name:"The proposal drafts itself in your template", line:"Your format, your inclusions and exclusions, your terms.", tools:["Microsoft Word", "DocuSign"], inp:"the signed number", outp:"the tender document, in your format", today:"Collating the document is a second day on top of the pricing.", operator:"The document is already built when the number is signed." },
-        { id:"n7", name:"The team is told it is ready to send", line:"The quote is logged against the job as it goes out, so the chase can start on its own clock.", tools:["Slack", "HubSpot"], inp:"a finished tender", outp:"sent, logged, and already scheduled to be followed up", today:"It goes out and is remembered, or it goes out and is not.", operator:"Logged on the way out, and already scheduled to be followed up." }
-      ]
-    },
-    {
-      key:"invoice",
-      plain:"It turns a finished job into the invoice and the paperwork",
-      title:"The Completion to Invoice Agent",
-      lede:"Finishing the work triggers the invoice, priced off the agreed rate, with only the exceptions needing you.",
-      label:"Finished work, not yet billed",
-      proof:"",
-      problem:{ title:"Finished work sits unbilled", line:"The invoice waits for someone to get to the paperwork, and the cash waits with it." },
-      nodes:[
-        { id:"n1", name:"The job is marked complete", line:"Completion is the trigger, not someone's memory at the end of the month.", tools:["simPRO", "ServiceM8"], inp:"a job marked finished on site", outp:"billing already started", today:"The invoice goes out about a week after the work, sometimes.", operator:"The clock starts the moment the work stops." },
-        { id:"n2", name:"It parses the completion record", line:"The docket, the report or the sign-off sheet is turned into structured fields.", tools:["Claude", "Adobe Acrobat"], inp:"the docket or sign-off sheet", outp:"the invoice lines, off the docket", today:"Someone reads the docket and retypes it into the invoice.", operator:"The docket is the invoice input, with no one in between." },
-        { id:"n3", name:"It classifies what is billable", line:"Against your rules, not its own judgement. The same call, made the same way, every time.", tools:["n8n", "Airtable"], inp:"what was actually done", outp:"what is billable, decided the same way every time", today:"Variations are argued about weeks later, from memory.", operator:"The call is made the same way every time, and it is written down." },
-        { id:"b1", name:"It falls outside the rules", branch:true, after:"n3", line:"Anything the rules do not cover is held for a person, with everything it found attached.", tools:["Slack"], inp:"a variation no one wrote a rule for", outp:"your decision before it goes out", today:"It goes on the invoice and gets queried.", operator:"You decide before it goes out, not after it is disputed." },
-        { id:"n4", name:"It looks up the customer and the agreed rate", line:"The contract rate, not the standard rate, and not last job's rate.", tools:["HubSpot", "simPRO"], inp:"the customer and the contract", outp:"the right rate on every line", today:"The rate is remembered, or looked up if there is time.", operator:"The right rate, every time, on every line." },
-        { id:"n5", name:"The invoice generates and sends itself", line:"Built, coded and out, with the completion record attached as the backup.", tools:["Xero", "MYOB"], inp:"priced, coded invoice lines", outp:"an invoice out the same day, with the backup attached", today:"Finished work sits unbilled while the paperwork queues.", operator:"Billed the same day it is finished." },
-        { id:"n6", name:"Overdue chases itself", line:"Terms are tracked and the reminder goes without anyone deciding to send it.", tools:["Xero", "Gmail"], inp:"an invoice past its terms", outp:"a chase that went on the date", today:"Chasing happens when cash gets tight.", operator:"Chasing happens on the date, every time." }
-      ]
-    },
-    {
-      key:"signoff",
-      plain:"It clears the queue of things only you can sign off",
-      title:"The Sign-Off Queue Agent",
-      lede:"The decision arrives at your desk assembled and pre-sorted, and the routine ones never arrive at all.",
-      label:"Everything waiting on one person",
-      proof:"",
-      problem:{ title:"Everything waits on one person to sign it", line:"The routine approvals and the hard ones land in the same pile, and the pile is the system." },
-      nodes:[
-        { id:"n1", name:"A job reaches a decision point", line:"The trigger is the job needing a decision, so the queue forms itself rather than being remembered.", tools:["Procore", "simPRO"], inp:"a job that cannot move without you", outp:"a queue that knows what it is waiting for", today:"It joins a pile, and the pile is the system.", operator:"It joins a queue that knows what it is waiting for." },
-        { id:"n2", name:"It assembles the file before it reaches you", line:"What was agreed before, what changed, what the client asked for, and what it costs. On one page.", tools:["SharePoint", "Claude"], inp:"a decision and everything behind it", outp:"the three things that matter, on one page", today:"You reopen the job to find the three things that matter.", operator:"The three things that matter are already in front of you." },
-        { id:"n3", name:"It drafts the recommendation with its reasons", line:"A position and why, with the parts of the job that support it cited underneath.", tools:["Claude"], inp:"the assembled file", outp:"a position you can agree with or reject", today:"You form the position from scratch, every time.", operator:"You agree with a position or you do not, which is faster." },
-        { id:"c1", name:"The routine ones stop reaching you", line:"The approvals that match rules you wrote yourself go without you, and you see the list rather than the jobs.", tools:["n8n", "Procore"], inp:"approvals inside your own rules", outp:"a list you read, not a pile you work", today:"Everything waits for the same person, whatever it is.", operator:"Only what needs the owner waits for one." },
-        { id:"b1", name:"It is outside your rules", branch:true, after:"n3", line:"Anything the rules do not cover is held and marked as such, never pushed through on a guess.", tools:["Microsoft Teams"], inp:"the unusual one", outp:"held, marked, and put in front of you", today:"The unusual one goes through the same path as the routine one.", operator:"The unusual one is the one you actually look at." },
-        { id:"n4", name:"You sign what needs real judgement", line:"The decisions that turn on experience. Fewer of them, and each with the file already read.", tools:[], inp:"the decisions that need you", outp:"a signed decision, made on a read file", today:"You sign everything, so you read everything.", operator:"You sign less and read more of what you sign." },
-        { id:"n5", name:"It records the decision and what it rested on", line:"The decision, the reasons and the file it was made from, kept together.", tools:["SharePoint"], inp:"a decision and its reasons", outp:"a record that survives the person who made it", today:"The reasoning lives in the head of whoever decided.", operator:"The reasoning survives the person who had it." },
-        { id:"c2", name:"The queue tells you what it is holding up", line:"What is waiting, how long it has waited and which job it is blocking are visible without anyone assembling a list.", tools:["Power BI"], inp:"everything currently waiting", outp:"the wait, as a number on a screen", today:"No one knows what the queue is costing until a client asks.", operator:"The wait is a number on a screen rather than a feeling." }
-      ]
-    },
-    {
-      key:"workload",
-      plain:"It fits more jobs through the same office",
-      title:"The Workload Agent",
-      lede:"Every task has a place to go that is not a person's goodwill, so work coming off a desk stops depending on someone having room.",
-      label:"Growth the office cannot absorb",
-      proof:"",
-      problem:{ title:"Growth arrives before the office can absorb it", line:"More jobs means more admin, and the only way anyone has found to add capacity is to add a person." },
-      nodes:[
-        { id:"n1", name:"It holds the work, not the people", line:"Tasks sit against the business rather than against an individual, so nothing is trapped in one person's list.", tools:["Airtable", "Pipedrive"], inp:"work stuck on one desk", outp:"work that can move without a conversation", today:"Work belongs to whoever picked it up, and it stays there.", operator:"Work can move without a conversation." },
-        { id:"n2", name:"It knows what everyone is carrying", line:"How much is on each desk, and what kind. The picture exists before the next thing is assigned.", tools:["Power BI"], inp:"what is on every desk today", outp:"assignment made with the load in view", today:"Load is assigned to whoever answers first or complains least.", operator:"Assignment happens with the load in view." },
-        { id:"n3", name:"It takes the transferable part", line:"The parts of a task that need no judgement are done before assignment, so what reaches a person is only the part that needed one.", tools:["Claude"], inp:"a whole task", outp:"only the part that needed a person", today:"A whole task moves or none of it does.", operator:"Tasks can be split, so they can move." },
-        { id:"c1", name:"There stops being nowhere", line:"Each recurring task gets a named home, whether that is a person, a role or something that runs, so coming off a desk stops being a favour.", tools:["Airtable"], inp:"a recurring task with no owner", outp:"a named destination for it", today:"Moving work means asking someone to take more on.", operator:"There is a destination for each thing." },
-        { id:"n4", name:"It says when something is stuck on capacity", line:"When work is waiting because no one has room rather than because it is blocked, that is raised as its own thing.", tools:["Slack"], inp:"work that is waiting", outp:"capacity named as capacity", today:"Capacity problems look like people being slow.", operator:"Capacity is named as capacity." },
-        { id:"c2", name:"The next hire gets an argument", line:"What each recurring task costs a year sits beside what it would cost to have handled, so the hiring conversation has numbers rather than pressure in it.", tools:["Power BI"], inp:"what the recurring work costs", outp:"a hiring case made from the work", today:"The case for help is made from how tired everyone is.", operator:"The case is made from what the work costs." },
-        { id:"n5", name:"It keeps the picture current", line:"What is being carried, by whom, and what came off. Produced continuously rather than assembled for a meeting.", tools:["Power BI"], inp:"every change to the load", outp:"a live picture, not a monthly one", today:"The load is discussed from memory once a month.", operator:"The load is a live number." }
-      ]
-    }
-  ],
-
-  roleLede: "The roadmap above is only as real as the person who owns it. These are the three levels that own this work, and one of them fits where the business is now.",
-  roleCards: {
-  "orchestrator": {
-    "name": "AI Orchestrator",
-    "kicker": "Hands-on implementer",
-    "body": "The entry tier. Builds and runs the agents day to day, under a CAO or an AI Officer, and keeps the workflows alive once they are live."
-  },
-  "officer": {
-    "name": "AI Officer",
-    "kicker": "Core placement tier",
-    "body": "Bridges the gap between executive strategy and technical execution. Translates business objectives into AI implementation priorities and ships them."
-  },
-  "cao": {
-    "name": "Chief Agent Officer",
-    "kicker": "Executive tier",
-    "body": "Works at the executive level. Owns the AI roadmap, sets governance policy, and is accountable for measurable ROI. Reports directly to the CEO or Chairman."
-  }
-},
   cta: {
   "bookingUrl": "https://calendly.com/gulliver-caopartners/30min",
   "buttonText": "Let's have a chat",
@@ -1733,26 +1596,6 @@ const SET = {
     "https://calendly.com/jonathan-caopartners/30min",
     "https://calendly.com/gulliver-caopartners/30min"
   ]
-},
-
-  closingNote: "Built from what real Australian AI operators have actually shipped inside businesses like yours. Treat them as examples of what an AI operator can build for you, rather than direct prescriptions for your business.",
-  readbackLead: "These are the five AI agents ranked highest for a construction business your size.",
-  sec01: {
-  "h2": "What this actually is.",
-  "copy": "Five AI agents, named and specified. For each one you get the trigger that starts it, every step it runs, what goes in and what comes out of each step, and what the same step takes today.",
-  "copy2": "They are the five that come up most often in Australian construction businesses, based on data from over 750 conversations with Australian business owners and AI specialists. They are ranked by how much work they take off a construction business, and you get all five, in that order."
-},
-  sec02: {
-  "h2": "What you are walking into.",
-  "copy": "These are the five that cost Australian construction businesses the most, worst first. Each one is answered by a build in the next section."
-},
-  sec03: {
-  "h2": "How to build it.",
-  "copy": "Five AI agents, worst problem first. Each one is shown the way it would actually run: the trigger, every step, what goes in, what comes out, what that step takes today and what it takes once it is built."
-},
-  sec05: {
-  "h2": "Where this goes next.",
-  "copy": "Nothing above needs our permission to build. If you want it built and there is no one in the business whose job that is, that is the conversation we have."
 },
 
   /* THE THREE STEPS. Two sizing bands, then ONE contact form carrying all five
@@ -1916,9 +1759,11 @@ function go(n){
   /* body.done is what hides the hero and shows the report, exactly as on every
      other asset. Setting display inline instead would fork the mechanism. */
   if(step >= STEP_RESULT){
-    document.body.classList.add("done");
-    renderReport();
-    window.scrollTo(0, 0);
+    /* DELIVERY BY SMS. Oscar 2026-09-08: the plan is not drawn here any more.
+       The form posts to the CRM, the CRM's rotation decides who owns the lead,
+       and that rep's line texts them a link to their plan. This screen only
+       ever says the text is on its way. */
+    window.CAO_DELIVER();
     return;
   }
   document.body.classList.remove("done");
@@ -1999,7 +1844,7 @@ function render(){
         '</div>' +
         (formError ? '<p class="err">' + esc(formError) + '</p>' : '') +
         '<div class="actions"><button class="btn btn-primary" onclick="next()">' +
-        (step === TOTAL ? 'Show me the five builds' : 'Continue') + ' <span class="arrow">&rarr;</span></button>' +
+        (step === TOTAL ? 'Text me the five builds' : 'Continue') + ' <span class="arrow">&rarr;</span></button>' +
         (step > 1 ? '<button class="back" onclick="go(' + (step - 1) + ')">Back</button>' : '') + '</div>';
     } else if(qq.type === "text"){
       h += '<div class="form"><div class="field"><input class="input"' +
@@ -2007,7 +1852,7 @@ function render(){
         esc(answers[qq.id] || "") + '" oninput="setField(\'' + qq.id + '\',this.value)"></div></div>' +
         (formError ? '<p class="err">' + esc(formError) + '</p>' : '') +
         '<div class="actions"><button class="btn btn-primary" onclick="next()">' +
-        (step === TOTAL ? 'Show me the five builds' : 'Continue') + ' <span class="arrow">&rarr;</span></button>' +
+        (step === TOTAL ? 'Text me the five builds' : 'Continue') + ' <span class="arrow">&rarr;</span></button>' +
         (step > 1 ? '<button class="back" onclick="go(' + (step - 1) + ')">Back</button>' : '') + '</div>';
     } else {
       h += '<div class="options">' +
@@ -2021,7 +1866,7 @@ function render(){
        details are asked for. It says what they are for, and it claims nothing
        is sent because nothing is: there is no fetch and no storage here. */
     if(qq.type === "contact"){
-      h += '<p class="note">Your plan opens on the next screen. We will not spam you, ' +
+      h += '<p class="note">We text your plan to the mobile above. We will not spam you, ' +
         'we will not send you marketing promotions, and we share your details with no one else.</p>';
     }
     h += '</div>';
@@ -2874,195 +2719,7 @@ function proofInit(){
    itself happens once, at 06, which is the only place this format pitches.
 --------------------------------------------------------------------------- */
 function renderReport(){
-  const r = model();
-  let n = 0, sn = () => String(++n).padStart(2,"0");
-  const wfSlide = wfBuild(wfFlowsFor(r));
-  const said = [r.size, r.turnover].filter(Boolean).join(", ");
-
-  let h = "";
-
-  /* THE PDF COVER, print only. Oscar 2026-08-17: the saved file is a CAO
-     document, so it opens the way the client proposal opens rather than on a
-     web page's header. Everything on it is already on the screen version; it is
-     the same five facts arranged as a cover, so nothing new is claimed here.
-
-     Data attributes, not classes, so the design lock has nothing to declare.
-     `@page :first { margin:0 }` is what lets it run to the paper edge. */
-  h += '<div data-pdf-cover>' +
-    '<img data-pdf-logo src="/plan/_shared/logo.svg" alt="CAO Partners">' +
-    '<div data-pdf-eyebrow>' + esc(SET.asset) + '</div>' +
-    '<div data-pdf-title>Your five builds</div>' +
-    '<div data-pdf-sub>' + esc(SET.readbackLead) + '</div>' +
-    '<div data-pdf-chip>' + esc(r.company) +
-      (said ? '<span>' + esc(said) + '</span>' : '') +
-      '<span>Prepared for ' + esc(contact.name || contact.firstName || "you") + '</span>' +
-      '<span>' + today() + '</span>' +
-    '</div>' +
-    '<div data-pdf-bar></div>' +
-  '</div>';
-
-  h += '<header class="rep-head"><div class="wide" data-rv-group>' +
-    '<div class="rep-meta" data-rv>' +
-      '<span><b>' + esc(r.company) + '</b></span>' +
-      '<span>Prepared for ' + esc(contact.firstName || contact.name || "you") + '</span>' +
-      '<span>' + today() + '</span>' +
-    '</div>' +
-    '<div class="rep-topline">' +
-      '<div data-rv><span class="eyebrow"><span class="dot"></span>' + esc(SET.asset) + '</span>' +
-        '<h1 class="h1" style="margin-bottom:10px">Your five builds</h1></div>' +
-      '<div data-rv><p class="sub" style="margin-bottom:0">' +
-        esc(r.company) + (said ? ', ' + esc(said) : '') + '. ' + esc(SET.readbackLead) + '</p></div>' +
-    '</div>' +
-    /* SKIP TO THE END, at the top of the results page. Oscar 2026-08-17: the
-       reader who has just been handed the plan gets the two controls up front,
-       so nobody has to scroll the whole document to find either one. Inside
-       `.rep-head` on purpose, which is the results page's own hero, rather
-       than as an unnumbered section wedged between the header and 01. */
-    '<div data-rv data-esc-top>' +
-      '<p class="copy" style="margin-bottom:0">Skip to the end.</p>' +
-      escapeHatch("") +
-    '</div>' +
-  '</div></header>';
-
-  /* 01 WHAT IT ACTUALLY IS. No claim, no pitch. What the reader is holding. */
-  h += '<section class="sec"><div class="wide" data-rv-group>' +
-    '<span class="sec-n" data-rv>' + sn() + '</span>' +
-    '<h2 class="h2" data-rv>' + esc(SET.sec01.h2) + '</h2>' +
-    '<p class="copy" data-rv>' + esc(SET.sec01.copy) + '</p>' +
-    '<p class="copy" data-rv>' + esc(SET.sec01.copy2) + '</p>' +
-  '</div></section>';
-
-  /* 02 WHAT THEY ARE WALKING INTO. The five problems, one per build, and no
-     fix is named here. The fix is section 03 and nowhere earlier. */
-  h += '<section class="sec"><div class="wide" data-rv-group>' +
-    '<span class="sec-n" data-rv>' + sn() + '</span>' +
-    '<h2 class="h2" data-rv>' + esc(SET.sec02.h2) + '</h2>' +
-    '<p class="copy" data-rv>' + esc(SET.sec02.copy) + '</p>' +
-    '<ol class="pains">' +
-      SET.builds.map(function(b, i){
-        return '<li data-rv><span class="pn">' + ("0" + (i + 1)).slice(-2) + '</span>' +
-          '<h3 class="pt">' + esc(b.problem.title) + '</h3>' +
-          '<p class="pb">' + esc(b.problem.line) + '</p></li>';
-      }).join("") +
-    '</ol>' +
-  '</div></section>';
-
-  /* 03 HOW TO BUILD IT. The five agents, walked. */
-  h += '<section class="sec tl" id="tl">' +
-    '<div class="wide tl-head" data-rv-group>' +
-      '<span class="sec-n" data-rv>' + sn() + '</span>' +
-      '<h2 class="h2" data-rv>' + esc(SET.sec03.h2) + '</h2>' +
-      '<p class="copy" data-rv>' + esc(SET.sec03.copy) + '</p>' +
-    '</div>' + (wfSlide ? wfSlide.html : '') + '</section>';
-
-  /* 04 WHO CAN BUILD IT. The three placements, at equal weight. It sits AFTER
-     the walk on purpose: the reader has just been shown five builds, and this
-     is the answer to the question that raises. Oscar 2026-08-13. */
-  h += '<section class="sec"><div class="wide" data-rv-group>' +
-    '<span class="sec-n" data-rv>' + sn() + '</span>' +
-    '<h2 class="h2" data-rv>Who can build it.</h2>' +
-    '<p class="copy" data-rv>' + esc(SET.roleLede) + '</p>' +
-    '<div class="hair tiers" data-rv>' +
-    ["orchestrator","officer","cao"].map(function(k){
-      var c = SET.roleCards[k];
-      return '<div class="on">' +
-        '<span class="tkick">' + esc(c.kicker) + '</span>' +
-        '<p class="tname">' + esc(c.name) + '</p>' +
-        '<p class="tbody">' + esc(c.body) + '</p>' +
-      '</div>'; }).join("") +
-    '</div></div></section>';
-
-  /* THE MID CTA. Oscar 2026-08-17: the same "Let's have a chat" ask, once more,
-     with a headline over it. Section 06 keeps its own and is unchanged.
-
-     IT SITS AFTER SECTION 04, so the reader has read the five builds AND the
-     three placements before it asks. Oscar moved it here from directly after
-     the walk on the same day.
-
-     IT CANNOT GO INSIDE `#tl`. `wfLayout()` SETS that section's height to
-     headH + innerHeight * (1 + runway), so anything placed inside it is inside
-     the pinned stage and gets swallowed by it. Nothing here touches that.
-
-     No new class. `.sec`, `.wide`, `.h2`, `.actions`, `.btn` all exist, it
-     carries no `.sec-n` because it is not a numbered section, and
-     `#report .actions { justify-content:center }` already centres it. */
-  h += '<section class="sec" id="midCta"><div class="wide" data-rv-group>' +
-    '<h2 class="h2" data-rv>Want to talk about who builds this?</h2>' +
-    '<div class="actions" data-rv><a class="btn btn-primary" href="' + BOOKING_URL +
-      '" target="_blank" rel="noreferrer">' + esc(SET.cta.buttonText) +
-      ' <span class="arrow">&rarr;</span></a></div>' +
-  '</div></section>';
-
-  /* 05 PROOF. The carousel, and nothing else. The three tier case studies came
-     out on Oscar's call 2026-08-13: the reader has just read five builds and
-     three placement stories underneath them is a second argument. */
-  h += '<section class="sec"><div class="wide" data-rv-group>' +
-    '<span class="sec-n" data-rv>' + sn() + '</span>' +
-    '<h2 class="h2" data-rv>Here is what happened when they did.</h2>' +
-    '<p class="copy" data-rv>' + esc(PROOF.lead) + '</p>' +
-    '<div class="roles" data-rv id="proofRoles"><div class="roles-view">' +
-      proofOrder().map(function(qq, i){
-        return '<article class="role-card' + (i === 0 ? ' on' : '') + '">' +
-          (qq.shot ? '<img class="tm-shot" src="' + qq.shot + '" alt="" loading="lazy" onerror="this.remove()">' : '') +
-          '<span class="t-label">' + esc(qq.industry) + '</span>' +
-          '<p class="tm-quote">&ldquo;' + esc(qq.quote) + '&rdquo;</p>' +
-          '<p class="tm-who">' + esc(qq.who) + '</p>' +
-        '</article>'; }).join("") +
-      '<div class="roles-bar">' +
-        '<button class="roles-nav" type="button" data-proof-prev aria-label="Previous client">&larr;</button>' +
-        '<div class="roles-dots">' + proofOrder().map(function(qq, i){
-          return '<button type="button" aria-label="Client ' + (i + 1) + '"' + (i === 0 ? ' class="on"' : '') + '></button>';
-        }).join("") + '</div>' +
-        '<button class="roles-nav" type="button" data-proof-next aria-label="Next client">&rarr;</button>' +
-      '</div>' +
-    '</div></div>' +
-  '</div></section>';
-
-  /* 06 THE ASK. The only place this format asks for anything. */
-  h += '<section class="sec cta-sec"><div class="wide" data-rv-group><span class="sec-n" data-rv>' + sn() + '</span>' +
-    '<h2 class="h2" data-rv>' + esc(SET.sec05.h2) + '</h2>' +
-    '<p class="copy" data-rv>' + esc(SET.sec05.copy) + '</p>' +
-    '<div class="actions" data-rv><a class="btn btn-primary" href="' + BOOKING_URL + '" target="_blank" rel="noreferrer">' +
-      esc(SET.cta.buttonText) + ' <span class="arrow">&rarr;</span></a>' +
-      '<a class="btn btn-ghost" href="' + SET.pdf + '" download>Download the PDF</a></div>' +
-    /* THE PDF's CLOSING BLOCK, print only. Every `.btn` is hidden on paper, so
-       without this the document ends on a heading and a paragraph with no way
-       to act on either. The booking link is printed as text because a printed
-       link the reader cannot click is a dead end. */
-    /* The ask, not the section copy. Printing `sec05.copy` here put the same
-       sentence on the page twice, once as body text and once in the block
-       under it. This carries the mid CTA's headline instead, which is the one
-       line the document otherwise loses: `#midCta` is a button and nothing
-       else, so it is hidden on paper. */
-    '<div data-pdf-close>' +
-      '<div data-pdf-quote>Want to talk about who builds this?</div>' +
-      /* THE ROUND-ROBINED REP'S OWN LINK. Oscar 2026-08-17: the saved document
-         books with whichever rep this page load drew, the same person both
-         on-screen CTAs send the reader to. `BOOKING_URL` is flipped once at
-         load, so the PDF cannot disagree with the page it came off.
-
-         IT IS AN ANCHOR, not printed text, because a PDF viewer keeps the link
-         live and a reader on a phone is not going to retype a Calendly path.
-         It carries no `.btn`, which is what keeps it out of the on-screen CTA
-         counters and out of the donor's print rule that hides every button.
-
-         THE FULL URL, scheme included. roadmap.js carves the booking links out
-         of its product-name scan before it looks for brands, and it matches on
-         the whole URL: an earlier version printed this with `https://` stripped,
-         which slipped past the carve-out and failed the scan on "Calendly". */
-      '<div data-pdf-contact><span>Book a conversation</span>' +
-        '<a href="' + BOOKING_URL + '">' + esc(BOOKING_URL) + '</a></div>' +
-    '</div>' +
-    '<p class="note" data-rv>' + esc(SET.closingNote) + '</p>' +
-  '</div></section>';
-
-  document.getElementById("report").innerHTML = h;
-  wfInit(wfSlide ? wfSlide.runway : 0);
-  proofInit();
-  revealInit();
-  /* after revealInit, so the stops are already observed before the walk marks
-     the first held one */
-  mwInit();
+  /* The report moved to the CRM. See the note on SET above. */
 }
 
 render();
@@ -3329,14 +2986,25 @@ render();
 
   function makeBuilding(centerX, depth, delayStart, sizeHint) {
     sizeHint = sizeHint || {};
-    const widthBase  = sizeHint.widthBase  != null ? sizeHint.widthBase  : (80 + Math.random() * 120);
-    const heightBase = sizeHint.heightBase != null ? sizeHint.heightBase : (140 + Math.random() * 260);
+    /* MOBILE GEOMETRY IS A SHARE OF THE CANVAS, NOT FIXED PIXELS.
+       These numbers were tuned for a wide landscape canvas. On a phone the
+       frame is narrow and portrait, so 80-200px buildings drawn nine across
+       covered 320% of the width and collapsed into noise. Expressed as a
+       fraction they scale into whatever frame they are given. Desktop keeps
+       the original values exactly. */
+    const mob = W < 700;
+    const widthBase  = sizeHint.widthBase  != null ? sizeHint.widthBase
+      : (mob ? W * 0.20 + Math.random() * W * 0.16 : 80 + Math.random() * 120);
+    const heightBase = sizeHint.heightBase != null ? sizeHint.heightBase
+      // Tops land around y=200-320, which is below the headline (127) and
+      // behind the buttons, where a skyline belongs.
+      : (mob ? H * 0.28 + Math.random() * H * 0.28 : 140 + Math.random() * 260);
     const w = widthBase * (1 - depth * 0.30);
     const h = heightBase * (1 - depth * 0.35);
     const opacity = 1 - depth * 0.45;
 
-    const cols = Math.max(2, Math.round(w / 18));
-    const rows = Math.max(4, Math.round(h / 20));
+    const cols = Math.max(2, Math.round(w / (mob ? 20 : 18)));
+    const rows = Math.max(4, Math.round(h / (mob ? 22 : 20)));
     const nodes = [];
 
     for (let i = 0; i <= cols; i++) {
@@ -3389,12 +3057,46 @@ render();
   function spawn() {
     buildings = [];
     pulses = [];
-    const count = Math.max(9, Math.floor(W / 110));
+    const mob = W < 700;
+    // Three on a phone, against nine before. The max(9, ...) was written as a
+    // floor for wide screens and became a ceiling that never lifted on narrow ones.
+    const count = mob ? 4 : Math.max(9, Math.floor(W / 110));
 
     // Spawn the crane support + cranes FIRST so we can size the left edge
     // tower relative to the left crane's height.
     let leftCrane = null;
-    if (W > 700) {
+    if (mob) {
+      /* ONE CRANE, LIFTED INTO THE DEAD SPACE ABOVE THE HEADLINE.
+         Two cranes crowd a phone, and none loses the construction idea the
+         scene exists to carry. Where the jib lands is decided by the support
+         beneath it: at ~26% of the height it arrived level with "Ready to
+         rebuild?" and read as clutter behind the words. At ~46-52% the jib sits
+         near the top of the frame, which is the only area with nothing
+         competing for attention. */
+      const support = makeBuilding(W * 0.24, 0.10, 0.2, {
+        widthBase:  W * 0.20 + Math.random() * W * 0.06,
+        // Measured against the live section, not an assumed one: on a 390px
+        // phone the canvas is 447px tall, the headline occupies y=85-127 and
+        // the buttons y=271-315. A support at 60% of the height puts the crane
+        // top near y=12 and the jib around y=17-27, comfortably above the
+        // headline. The crane's own height cap (anchorTopY - 12) keeps it
+        // inside the canvas whatever the section height turns out to be.
+        heightBase: H * 0.60 + Math.random() * H * 0.04,
+      });
+      buildings.push(support);
+      leftCrane = makeCraneOnTop(support, 'left');
+      /* SIT THE MAST ON THE MIDDLE OF THE SUPPORT, NOT ITS EDGE.
+         makeCraneOnTop passes the support's centre as the CRANE's centre, but
+         the mast is not at the crane's centre: it sits counterLen + 4 +
+         mastW/2, about 40px, from the left edge, while the crane's centre is
+         half its ~160px width. So the mast landed ~40px left of the support
+         and the whole thing looked perched on the corner. Shifting the crane
+         right by that difference puts the mast over the middle of the tower
+         it is standing on. Phones only, since desktop supports are wide
+         enough that the offset does not read. */
+      leftCrane.cx += leftCrane.w / 2 - (30 + 4 + 12 / 2);
+      buildings.push(leftCrane);
+    } else if (W > 700) {
       const leftSupport  = makeBuilding(W * 0.18, 0.10, 0.2, { widthBase: 95 + Math.random() * 30, heightBase: 170 + Math.random() * 70 });
       const rightSupport = makeBuilding(W * 0.82, 0.10, 0.4, { widthBase: 95 + Math.random() * 30, heightBase: 170 + Math.random() * 70 });
       buildings.push(leftSupport, rightSupport);
@@ -3408,32 +3110,75 @@ render();
       : null;
 
     for (let i = 0; i < count; i++) {
-      const depth = Math.random() < 0.5 ? Math.random() * 0.35 : 0.35 + Math.random() * 0.55;
-      const slot = (i + 0.5) / count;
-      const jitter = (Math.random() - 0.5) * (W / count) * 0.55;
-      const cx = slot * W + jitter;
+      const depth = mob
+        // Shallower range on a phone: a deeply set-back tower shrinks by up to
+        // 30%, which is what opens gaps between neighbours in a narrow frame.
+        ? Math.random() * 0.45
+        : (Math.random() < 0.5 ? Math.random() * 0.35 : 0.35 + Math.random() * 0.55);
+
       // First few buildings start nearly immediately so motion is visible at once.
       const delay = i < 3 ? Math.random() * 0.4 : Math.random() * 5.0;
+
       // Anchor the skyline with tall edge towers. Rightmost reaches near the
       // canvas top; leftmost sits just a touch above the left crane.
-      const isLeftEdge = i === 0;
-      const isRightEdge = i === count - 1;
+      const isLeftEdge = !mob && i === 0;
+      const isRightEdge = !mob && i === count - 1;
       let sizeHint;
       let edgeDepth = depth;
-      if (isRightEdge) {
-        edgeDepth = 0.04;
-        const mult = 1 - edgeDepth * 0.35;
-        sizeHint = { widthBase: 130 + Math.random() * 25, heightBase: Math.max(380, (H - 10) / mult) };
-      } else if (isLeftEdge) {
-        edgeDepth = 0.06;
-        const mult = 1 - edgeDepth * 0.35;
-        // Target top ~20px above the left crane top; fall back to a static
-        // tall value if there's no crane (narrow viewport).
-        const targetTopY = leftCraneTopY != null
-          ? Math.max(8, leftCraneTopY - 22)
-          : 80;
-        const targetH = Math.max(280, H - targetTopY);
-        sizeHint = { widthBase: 115 + Math.random() * 25, heightBase: targetH / mult };
+      let cx;
+
+      if (mob) {
+        /* PHONES TILE THE WIDTH. Everything before this placed towers at
+           slot centres with free-running width and heavy jitter, then let
+           depth shrink them again. On a 390px canvas that is +/-27px of
+           jitter against a 97px slot, so the left edge could open a 48px gap
+           while the middle piled up. A skyline with a hole at one end reads
+           as broken, and no amount of adding another tower on top fixes it,
+           it just crowds the middle.
+
+           So: each tower owns one slot, is a touch wider than its slot so
+           neighbours overlap rather than leaving seams, and the width is
+           divided by the depth shrink so a set-back tower still fills its
+           slot. Jitter is small enough to vary the skyline without reopening
+           a gap. The outer two hang past the canvas edge, so the city runs
+           off both sides instead of stopping short of them. */
+        const slotW = W / count;
+        const outer = i === 0 || i === count - 1;
+        /* Widths verified by simulation over 3000 spawns rather than guessed:
+           inner 1.35-1.60 slots, outer 1.75-2.05. The outer two are wider
+           because they also hang past the edge, and without the extra width
+           that overhang simply moves the gap inboard instead of closing it.
+           At these values the worst case across 3000 spawns is a 12.7px
+           OVERLAP between neighbours and zero bare strip at either edge. */
+        const targetW = slotW * (outer ? 1.75 + Math.random() * 0.30
+                                       : 1.35 + Math.random() * 0.25);
+        const overhang = i === 0 ? -slotW * 0.28
+                       : i === count - 1 ? slotW * 0.28
+                       : 0;
+        cx = (i + 0.5) * slotW + overhang + (Math.random() - 0.5) * slotW * 0.16;
+        sizeHint = {
+          widthBase:  targetW / (1 - edgeDepth * 0.30),
+          heightBase: H * 0.28 + Math.random() * H * 0.28,
+        };
+      } else {
+        const slot = (i + 0.5) / count;
+        const jitter = (Math.random() - 0.5) * (W / count) * 0.55;
+        cx = slot * W + jitter;
+        if (isRightEdge) {
+          edgeDepth = 0.04;
+          const mult = 1 - edgeDepth * 0.35;
+          sizeHint = { widthBase: 130 + Math.random() * 25, heightBase: Math.max(380, (H - 10) / mult) };
+        } else if (isLeftEdge) {
+          edgeDepth = 0.06;
+          const mult = 1 - edgeDepth * 0.35;
+          // Target top ~20px above the left crane top; fall back to a static
+          // tall value if there's no crane (narrow viewport).
+          const targetTopY = leftCraneTopY != null
+            ? Math.max(8, leftCraneTopY - 22)
+            : 80;
+          const targetH = Math.max(280, H - targetTopY);
+          sizeHint = { widthBase: 115 + Math.random() * 25, heightBase: targetH / mult };
+        }
       }
       buildings.push(makeBuilding(cx, edgeDepth, delay, sizeHint));
     }
@@ -3470,6 +3215,14 @@ render();
     const counterLen = 30;
     const hookDrop = 26 + Math.random() * 10;
 
+    /* ON A PHONE THE CRANE IS THE FOCAL POINT, so its dots must not merge.
+       Each node draws a 7px glow. The jib packs 9 node-pairs across ~120px in
+       two rows 10px apart, which at that radius fuses into a single bright
+       mass rather than a lattice. Desktop gets away with it because the crane
+       is small against a wide scene; on a phone it is the thing you look at.
+       Fewer nodes, further apart, and a deeper jib so the two rows read as
+       two. */
+    const mob = W < 700;
     const padTop = 4;
     const w = mastW + jibLen + counterLen + 8;
     const h = mastH + cabinH + padTop + 6;
@@ -3482,12 +3235,12 @@ render();
     const mastBaseY = h - 4;
     const mastTopY = cabinH + padTop;
     const jibTopY = padTop + 1;
-    const jibBotY = padTop + 11;
+    const jibBotY = padTop + (mob ? 17 : 11);
     const cabinTopY = padTop;
     const cabinBotY = mastTopY;
 
     // Mast , bottom-first delays so it builds upward
-    const mastRows = 12;
+    const mastRows = mob ? 8 : 12;
     for (let j = 0; j <= mastRows; j++) {
       const ly = mastBaseY - (j / mastRows) * (mastBaseY - mastTopY);
       const corner = j === 0 || j === mastRows;
@@ -3503,7 +3256,7 @@ render();
     nodes.push({ lx: mastRight + 4, ly: cabinTopY, delay: 0.03, corner: true, edge: true });
 
     // Jib , long arm
-    const jibSegments = 9;
+    const jibSegments = mob ? 5 : 9;
     for (let i = 1; i <= jibSegments; i++) {
       const lx = mastRight + (i / jibSegments) * jibLen;
       const t = i / jibSegments;
@@ -3513,7 +3266,7 @@ render();
     }
 
     // Counter-jib , short arm
-    const counterSegments = 3;
+    const counterSegments = mob ? 2 : 3;
     for (let i = 1; i <= counterSegments; i++) {
       const lx = mastLeft - (i / counterSegments) * counterLen;
       const t = i / counterSegments;
@@ -3635,8 +3388,13 @@ render();
         ctx.stroke();
       });
 
-      // 2) Silhouette fill once mostly built
-      if (buildP > 0.55) {
+      /* 2) Silhouette fill once mostly built , TOWERS ONLY.
+         This fills the object's BOUNDING BOX. A tower is roughly a rectangle,
+         so the fill reads as its mass. A crane is a thin mast and a thin jib
+         inside a ~160x158 box, so the same fill paints a translucent square
+         hanging in the air around it: the "shadow" behind every crane, on
+         desktop as well as phones. Cranes are drawn as structure only. */
+      if (buildP > 0.55 && !b.isCrane) {
         const f = ((buildP - 0.55) / 0.45) * 0.10 * alpha;
         ctx.fillStyle = `rgba(${FILL}, ${f})`;
         ctx.fillRect(bx, by, b.w, b.h);
@@ -3741,11 +3499,223 @@ render();
 })();
 
 </script>
-<!-- wired:foot:begin -->
+<script>
+window.CAO_DELIVER_CFG = {"base":"https://plan.caopartners.com.au","asset":"construction-ai-build-plan"};
+/* DELIVERY BY SMS. Added by factory/scripts/inject-deliver.mjs.
+
+   Oscar, 2026-09-08: the six-digit code is gone. The reader fills the form, and
+   the text carries the plan itself, as a link into the CRM. So this page no
+   longer renders the report at all: the build plan lives behind a token at
+   /en/build-plan/{token}, and the only way to it is the phone.
+
+   THE ROTATION DECIDES, THEN THE SEND FOLLOWS. The CRM picks the rep who owns
+   this lead before anything is texted, sends from that rep's own Aircall line,
+   and hands their first name back so this screen can say who is looking after
+   them. Every CTA on the delivered plan is already that rep's calendar, set
+   server-side, so nothing about the booking link is decided on the page any more.
+
+   Nothing is stored on the page. The CRM owns the lead, the limits and the
+   link: /api/public/lead-magnets/deliver (cao-crm,
+   lib/cao/leadMagnets/delivery.ts, tables cao_LeadMagnetLeads and
+   cao_LeadMagnetPages).
+
+   No new class. `.panel`, `.rv-head`, `.rv-title`, `.rv-pill`, `.hd-pulse`,
+   `.step`, `.q`, `.qhelp`, `.note`, `.err`, `.actions`, `.btn`, `.btn-primary`,
+   `.back` all exist on every asset. The honeypot is a data attribute, so the
+   design lock has nothing to declare. */
+(function () {
+  'use strict';
+  var CFG = window.CAO_DELIVER_CFG || {};
+  var BASE = String(CFG.base || '').replace(/\/$/, '');
+  var ASSET = String(CFG.asset || '');
+  var RESEND_SECONDS = 45;
+  var busy = false;
+  var resendAt = 0;
+
+  /* META ATTRIBUTION. Same pairing as the website's lm-capture.js: one event_id
+     is shared by the browser Lead fired here and the server Lead the CRM's
+     private worker sends after delivery, so Meta counts one conversion, not two.
+     The click cookies and this page's URL (which carries utm_* and fbclid) ride
+     with the submission so the server event and the CRM lead trace to the ad.
+     Tracking must never block delivery: every failure here is swallowed. */
+  var EVENT_ID = (window.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : String(Date.now()) + '-' + Math.random().toString(16).slice(2);
+  var leadTracked = false;
+  function cookie(name) {
+    var m = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
+    return m ? m[2] : '';
+  }
+  function magnetKey() {
+    var m = String(location.pathname).match(/\/plan\/([a-z0-9-]+)/i);
+    return m ? m[1].toLowerCase() : ASSET.replace(/-ai-build-plan$/, '');
+  }
+  /* Once, and only for a FIRST delivery. A resend is the lead the server already
+     counted, so a second browser Lead would be a phantom conversion; Meta's
+     ad-review crawler pressing "Send it again" is exactly that. */
+  function trackLead(resent) {
+    if (leadTracked || resent) return;
+    leadTracked = true;
+    try {
+      if (typeof window.fbq === 'function') {
+        window.fbq('track', 'Lead', { content_name: 'ai-build-plan:' + magnetKey() }, { eventID: EVENT_ID });
+      }
+    } catch (e) { /* tracking must never block delivery */ }
+  }
+  var honeypot = document.createElement('input');
+  honeypot.type = 'text';
+  honeypot.name = 'website';
+  honeypot.autocomplete = 'off';
+  honeypot.tabIndex = -1;
+  honeypot.setAttribute('aria-hidden', 'true');
+  honeypot.setAttribute('data-cao-honeypot', '');
+  honeypot.style.cssText = 'position:absolute;left:-10000px;width:1px;height:1px;opacity:0;';
+  document.body.appendChild(honeypot);
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function A() {
+    try { return typeof answers !== 'undefined' && answers ? answers : {}; } catch (e) { return {}; }
+  }
+  /* The quiz answers only. The contact fields ride in their own keys on the
+     request, so sending them twice would put a phone number in the lead's
+     description as well as its own column. */
+  function answersOnly() {
+    var a = A(), out = {};
+    for (var k in a) {
+      if (Object.prototype.hasOwnProperty.call(a, k) &&
+          !/^(firstName|lastName|email|phone|company|name|role|routing)$/.test(k)) out[k] = a[k];
+    }
+    return out;
+  }
+  function prettyPhone(v) {
+    var d = String(v || '').replace(/[^\d+]/g, '');
+    if (/^\+?61/.test(d)) d = '0' + d.replace(/^\+?61/, '');
+    if (/^04\d{8}$/.test(d)) return d.slice(0, 4) + ' ' + d.slice(4, 7) + ' ' + d.slice(7);
+    return v;
+  }
+
+  var ERR = {
+    invalid_asset: 'This plan is not one we can send right now. Give us a call and we will get it to you.',
+    not_au_mobile: 'That does not look like an Australian mobile. Go back and check the number.',
+    invalid_email: 'The email on the form does not look right. Go back and check it.',
+    missing_fields: 'Your name is missing from the form. Go back and add it.',
+    rate_limited: 'That number has had a few of these already. Try again in an hour.',
+    send_failed: 'The text did not go through. Give it a moment and try again.',
+    server_error: 'Something went wrong on our side. Try again in a moment.',
+    network: 'We could not reach the server. Check your connection and try again.'
+  };
+
+  function head(title, pill) {
+    return '<div class="rv-head"><div class="rv-title">' + esc(title) + '</div>' +
+      '<div class="rv-pill"><span class="hd-pulse"></span>' + esc(pill) + '</div></div>';
+  }
+  function paint(html) {
+    var app = document.getElementById('app');
+    if (app) app.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+  function assetName() {
+    try { return SET && SET.asset ? SET.asset : 'Your build plan'; } catch (e) { return 'Your build plan'; }
+  }
+
+  function sending() {
+    paint(head(assetName(), 'Sending') +
+      '<div class="step"><p class="q">Texting your build plan now.</p>' +
+      '<p class="qhelp">One moment.</p></div>');
+  }
+
+  function sent(rep, phone, resent) {
+    var who = rep && rep.firstName ? esc(rep.firstName) : null;
+    paint(head(assetName(), 'Check your phone') +
+      '<div class="step">' +
+        '<p class="q">Your build plan is on its way to ' + esc(prettyPhone(phone)) + '.</p>' +
+        (who
+          ? '<p class="qhelp">It comes from ' + who + ', who looks after this plan. Reply to that message if you want a hand with any of the five builds.</p>'
+          : '<p class="qhelp">Open the link in the message to read the five builds.</p>') +
+        (resent ? '<p class="note">That is the same link we sent you before, so anything you have already opened still works.</p>' : '') +
+        '<div class="actions">' +
+          '<button class="back" data-deliver-again>Send it again</button>' +
+        '</div>' +
+      '</div>');
+    var again = document.querySelector('[data-deliver-again]');
+    if (again) again.addEventListener('click', function () { start(true); });
+  }
+
+  function failed(code) {
+    paint(head(assetName(), 'Something went wrong') +
+      '<div class="step">' +
+        '<p class="err">' + esc(ERR[code] || ERR.server_error) + '</p>' +
+        '<div class="actions">' +
+          '<button class="btn btn-primary" data-deliver-retry>Try again</button>' +
+          '<button class="back" data-deliver-back>Back to the form</button>' +
+        '</div>' +
+      '</div>');
+    var retry = document.querySelector('[data-deliver-retry]');
+    if (retry) retry.addEventListener('click', function () { start(true); });
+    var back = document.querySelector('[data-deliver-back]');
+    if (back) back.addEventListener('click', function () { try { go(TOTAL); } catch (e) {} });
+  }
+
+  function start(again) {
+    if (busy) return;
+    var now = Date.now();
+    if (again && now < resendAt) return;
+    busy = true;
+    resendAt = now + RESEND_SECONDS * 1000;
+    var a = A();
+    var phone = a.phone || '';
+    sending();
+
+    fetch(BASE + '/api/public/lead-magnets/deliver', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        asset: ASSET,
+        firstName: a.firstName || '',
+        lastName: a.lastName || '',
+        email: a.email || '',
+        company: a.company || '',
+        phone: phone,
+        answers: answersOnly(),
+        eventId: EVENT_ID,
+        fbc: cookie('_fbc') || null,
+        fbp: cookie('_fbp') || null,
+        sourceUrl: String(location.href).slice(0, 2000),
+        website: honeypot.value || ''
+      })
+    })
+      .then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          return { ok: res.ok, data: data };
+        });
+      })
+      .then(function (r) {
+        busy = false;
+        if (r.ok && r.data && r.data.ok) {
+          trackLead(!!r.data.resent);
+          sent(r.data.rep, phone, !!r.data.resent);
+        } else { resendAt = 0; failed((r.data && r.data.error) || 'server_error'); }
+      })
+      .catch(function () {
+        busy = false;
+        resendAt = 0;
+        failed('network');
+      });
+  }
+
+  /* The one entry point. inject-deliver.mjs replaces the report render inside
+     go() with a call to this, so the last step of the form submits into the
+     "check your phone" screen and the plan is never drawn on this page. */
+  window.CAO_DELIVER = function () { start(false); };
+})();
+</script>
 <div style="text-align:center;padding:28px 16px 40px;font:300 13px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;opacity:.55">
   <a href="https://caopartners.com.au/privacy/" style="color:inherit;text-decoration:underline">Privacy Policy</a>
   &nbsp;·&nbsp; © CAO Partners Pty Ltd
 </div>
-<!-- wired:foot:end -->
 </body>
 </html>
