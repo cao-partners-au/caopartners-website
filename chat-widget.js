@@ -6,6 +6,10 @@
  * own locked-down service: it can start and continue a visitor's own conversation
  * and nothing else.
  *
+ * PUBLIC SWITCH. Nothing renders until the chat service says so (GET status ->
+ * mode): off renders nothing; test renders only in browsers flagged by opening any
+ * page with ?chat=test (?chat=off clears the flag); live renders for everyone.
+ *
  * Flow:
  *   1. The visitor picks Hire or Become (Become is pre-selected on /become pages).
  *   2. During business hours: name, optional email/phone, first message, then live
@@ -121,10 +125,29 @@
   closeBtn.addEventListener("click", closePanel);
   panel.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanel(); });
 
+  var TESTER_KEY = "cao_chat_tester";
+  function testerFlag() {
+    try {
+      var q = new URLSearchParams(location.search).get("chat");
+      if (q === "test") localStorage.setItem(TESTER_KEY, "1");
+      if (q === "off") localStorage.removeItem(TESTER_KEY);
+      return localStorage.getItem(TESTER_KEY) === "1";
+    } catch (e) {
+      return /[?&]chat=test\b/.test(location.search);
+    }
+  }
+  var isTester = testerFlag();
+
   function mount() {
     if (!document.body) return setTimeout(mount, 50);
-    document.body.appendChild(host);
-    if (state.conversationId) schedulePoll(1500);
+    refreshStatus().then(function (s) {
+      var mode = s && s.mode;
+      var visible = mode === "live" || (mode === "test" && isTester);
+      if (!visible) return; // off, unreachable, or not a tester: render nothing at all
+      if (mode === "test") launcher.classList.add("testing");
+      document.body.appendChild(host);
+      if (state.conversationId) schedulePoll(1500);
+    });
   }
   mount();
 
@@ -155,7 +178,7 @@
   function refreshStatus() {
     return api("status").then(function (s) {
       if (s && s.ok) status = s;
-      else status = status || { open: false, nextOpen: "soon", noReplySeconds: 180, unavailable: true };
+      else status = status || { mode: "off", open: false, nextOpen: "soon", noReplySeconds: 180, unavailable: true };
       setSubtitle();
       return status;
     });
@@ -245,7 +268,7 @@
           return;
         }
         if (r.error === "after_hours") {
-          status = { open: false, nextOpen: r.nextOpen || "soon", noReplySeconds: 180 };
+          status = { mode: status && status.mode, open: false, nextOpen: r.nextOpen || "soon", noReplySeconds: 180 };
           setSubtitle();
           state.name = name.value.trim(); state.email = email.value.trim(); state.phone = phone.value.trim();
           firstVisitorText = text.value.trim();
@@ -409,7 +432,7 @@
       if (r.error === "not_found") { forget(); if (panelOpen) refreshStatus().then(showChoose); return; }
       if (!r.ok) { schedulePoll(panelOpen ? POLL_OPEN_MS * 2 : POLL_CLOSED_MS); return; }
       latest = r;
-      status = { open: r.open, nextOpen: r.nextOpen, noReplySeconds: (status && status.noReplySeconds) || 180 };
+      status = { mode: status && status.mode, open: r.open, nextOpen: r.nextOpen, noReplySeconds: (status && status.noReplySeconds) || 180 };
       if (panelOpen) setSubtitle();
       if (r.captured && !state.captured) { state.captured = true; save(); }
 
@@ -444,6 +467,7 @@
 
   function messageFor(r) {
     switch (r.error) {
+      case "disabled": return "Chat is switched off right now. You can email " + contactEmail() + ".";
       case "rate_limited": return "Too many messages from here just now. Please try again in a minute.";
       case "invalid_email": return "That email address doesn't look right.";
       case "invalid_phone": return "That phone number doesn't look right.";
@@ -466,6 +490,7 @@
       ".launcher .icon{font-size:18px;line-height:1}",
       ".launcher .dot{display:none;width:10px;height:10px;border-radius:50%;background:#ff5a5a;border:2px solid #fff}",
       ".launcher.unread .dot{display:inline-block}",
+      ".launcher.testing::after{content:'TEST';margin-left:4px;font-size:10px;font-weight:700;background:#ffcc33;color:#111;border-radius:6px;padding:1px 5px}",
       ":host(.is-open) .launcher .label{display:none}",
       ".panel{position:fixed;right:20px;bottom:84px;z-index:2147483000;width:370px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 110px);display:flex;flex-direction:column;background:#0c0d1a;color:#fff;border:1px solid #1e2140;border-radius:16px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,.5)}",
       ".panel[hidden]{display:none}",
