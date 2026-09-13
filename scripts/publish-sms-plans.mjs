@@ -23,6 +23,7 @@
  */
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { withChatWidget } from "./lib/chat-widget-tag.mjs";
 import { join } from "node:path";
 
 const argv = process.argv.slice(2);
@@ -67,6 +68,9 @@ for (const pair of pairs) {
       local.push([f, bytes]); // referenced by bare name, so it resolves beside /plan/<folder>/
     }
   }
+
+  // Same chat widget tag every other page carries, applied here so a republish keeps it.
+  html = withChatWidget(html);
 
   const out = join("plan", folder, "index.html");
   const current = existsSync(out) ? readFileSync(out, "utf8") : null;

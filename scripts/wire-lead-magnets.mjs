@@ -18,6 +18,7 @@
  */
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { withChatWidget } from "./lib/chat-widget-tag.mjs";
 
 const SRC = process.argv[2];
 const CHECK = process.argv.includes("--check");
@@ -140,7 +141,8 @@ for (const [file, slug] of MAGNETS) {
 
   const outDir = join("plan", slug);
   const outFile = join(outDir, "index.html");
-  const wired = repointMedia(wire(readFileSync(src, "utf8")), sharedMedia());
+  // The chat widget is re-stamped here too, or a regenerate would drop it (see scripts/lib/chat-widget-tag.mjs).
+  const wired = withChatWidget(repointMedia(wire(readFileSync(src, "utf8")), sharedMedia()));
   checked++;
 
   const current = existsSync(outFile) ? readFileSync(outFile, "utf8") : null;
