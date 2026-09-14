@@ -121,6 +121,14 @@
   root.appendChild(panel);
   root.appendChild(launcher);
 
+  // While the panel is closed and the call-back offer is due, the bubble says so.
+  function setNudge(on) {
+    var label = launcher.querySelector(".label");
+    launcher.classList.toggle("unread", on || launcher.classList.contains("unread"));
+    launcher.classList.toggle("nudge", on);
+    if (label) label.textContent = on ? "Leave your details" : "Chat with us";
+  }
+
   launcher.addEventListener("click", function () { panelOpen ? closePanel() : openPanel(); });
   closeBtn.addEventListener("click", closePanel);
   panel.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanel(); });
@@ -155,6 +163,8 @@
     panelOpen = true;
     panel.hidden = false;
     launcher.setAttribute("aria-expanded", "true");
+    launcher.classList.remove("unread");
+    setNudge(false);
     launcher.classList.remove("unread");
     host.classList.add("is-open");
     if (state.conversationId) {
@@ -370,7 +380,7 @@
     input = el("textarea", { rows: "2", maxlength: "2000", "aria-label": "Type your message", placeholder: "Type your message" });
     sendBtn = el("button", { type: "button", class: "primary", text: "Send" });
     offer = el("div", { class: "offer", hidden: true }, [
-      el("p", { text: "Nobody has replied yet. Leave your details and we'll get back to you." }),
+      el("p", { class: "offer-text", text: "Nobody has replied yet. Leave your details and we'll get back to you." }),
       el("button", { type: "button", class: "primary", text: "Leave my details", onclick: function () { showCaptureForm("no_reply"); } })
     ]);
     note = el("p", { class: "note", hidden: !state.captured, text: state.captureNote || "Thanks. We've got your details and will be in touch." });
@@ -436,17 +446,31 @@
       if (panelOpen) setSubtitle();
       if (r.captured && !state.captured) { state.captured = true; save(); }
 
+      // The call-back offer is due once the visitor's oldest unanswered message has
+      // waited the no-reply window. Worked out on EVERY poll, not only while the chat
+      // is open: a visitor who closed the panel or moved to another page would
+      // otherwise never learn the offer exists (Michael's test, 14 Sep 2026).
+      var waitMs = r.firstUnansweredAt ? Date.now() - new Date(r.firstUnansweredAt).getTime() : 0;
+      var limit = ((status && status.noReplySeconds) || 180) * 1000;
+      var offerDue = !!(r.status !== "closed" && !r.captured && !state.dismissedOffer && r.firstUnansweredAt && waitMs >= limit);
+
       if (watching) {
         (r.messages || []).forEach(renderMessage);
         list.scrollTop = list.scrollHeight;
         if (r.status === "closed") renderClosed();
         note.hidden = !state.captured;
-        var waitMs = r.firstUnansweredAt ? Date.now() - new Date(r.firstUnansweredAt).getTime() : 0;
-        var limit = ((status && status.noReplySeconds) || 180) * 1000;
-        offer.hidden = !(r.status !== "closed" && !r.captured && !state.dismissedOffer && r.firstUnansweredAt && waitMs >= limit);
+        var offerText = offer.querySelector(".offer-text");
+        if (offerText) {
+          offerText.textContent = r.staffReplied
+            ? "Sorry for the wait, we've been pulled away. Leave your details and we'll get back to you as soon as someone is free."
+            : "Nobody has replied yet. Leave your details and we'll get back to you.";
+        }
+        offer.hidden = !offerDue;
+        setNudge(false);
       } else {
         var staffNew = (r.messages || []).some(function (m) { return m.sender === "staff" && (!state.lastSeenStaffAt || m.at > state.lastSeenStaffAt); });
         if (staffNew && !panelOpen) launcher.classList.add("unread");
+        if (!panelOpen) setNudge(offerDue);
       }
       if (watching) {
         var staff = (r.messages || []).filter(function (m) { return m.sender === "staff"; });
@@ -490,6 +514,7 @@
       ".launcher .icon{font-size:18px;line-height:1}",
       ".launcher .dot{display:none;width:10px;height:10px;border-radius:50%;background:#ff5a5a;border:2px solid #fff}",
       ".launcher.unread .dot{display:inline-block}",
+      ".launcher.nudge{background:#0d50cc;box-shadow:0 0 0 3px rgba(255,204,51,.9),0 8px 24px rgba(0,0,0,.35)}",
       ".launcher.testing::after{content:'TEST';margin-left:4px;font-size:10px;font-weight:700;background:#ffcc33;color:#111;border-radius:6px;padding:1px 5px}",
       ":host(.is-open) .launcher .label{display:none}",
       ".panel{position:fixed;right:20px;bottom:84px;z-index:2147483000;width:370px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 110px);display:flex;flex-direction:column;background:#0c0d1a;color:#fff;border:1px solid #1e2140;border-radius:16px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,.5)}",
