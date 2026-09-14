@@ -1,0 +1,9 @@
+{
+  "name": "caop-website-redesign-v3",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}
