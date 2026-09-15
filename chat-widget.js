@@ -12,7 +12,7 @@
  *
  * Flow:
  *   1. The visitor picks Hire or Become (Become is pre-selected on /become pages).
- *   2. During business hours: name, optional email/phone, first message, then live
+ *   2. During live chat hours (9am to 5pm AEST, Monday to Friday; the green LED is on): name, optional email/phone, first message, then live
  *      chat. If nobody has replied after the service's no-reply window, the widget
  *      offers the call-back form so the enquiry is never lost.
  *   3. After hours: the call-back form straight away.
@@ -33,6 +33,9 @@
   // Lazy inside the hidden panel, so it only downloads when a visitor opens the chat; absolute
   // so it still resolves on pages served from another path or subdomain.
   var LOGO_URL = "https://caopartners.com.au/logo.svg";
+  // Live chat hours, as the chat service reports them (lib/cao/chat/config.ts CHAT_HOURS_LABEL).
+  var HOURS_FALLBACK = "9am to 5pm AEST, Monday to Friday";
+  function hoursText() { return (status && status.hours) || HOURS_FALLBACK; }
   var STORE_KEY = "cao_chat_v1";
   var POLL_OPEN_MS = 4000;
   var POLL_CLOSED_MS = 20000;
@@ -111,6 +114,7 @@
   var style = el("style", { text: CSS() });
   var launcher = el("button", { class: "launcher", type: "button", "aria-label": "Chat with CAO Partners", "aria-expanded": "false" }, [
     el("span", { class: "icon", "aria-hidden": "true", text: "\u2709" }),
+    el("span", { class: "live", "aria-hidden": "true" }),
     el("span", { class: "label", text: "Chat with us" }),
     el("span", { class: "dot", "aria-hidden": "true" })
   ]);
@@ -159,6 +163,8 @@
       if (mode === "test") launcher.classList.add("testing");
       document.body.appendChild(host);
       if (state.conversationId) schedulePoll(1500);
+      // Re-check the hours every 5 minutes so the LED and wording change at 9am and 5pm on an open page.
+      setInterval(function () { if (!document.hidden) refreshStatus(); }, 5 * 60 * 1000);
     });
   }
   mount();
@@ -199,10 +205,13 @@
   }
 
   function setSubtitle() {
+    // The green LED on the bubble means a person can reply now: live chat hours, switch on.
+    launcher.classList.toggle("online", !!(status && status.open));
+    launcher.setAttribute("aria-label", status && status.open ? "Chat with CAO Partners, we're online" : "Chat with CAO Partners");
     if (!status) { titleLine.textContent = ""; return; }
     titleLine.textContent = status.open
       ? "We're online. Replies usually take a few minutes."
-      : "We're offline. Leave your details and we'll get back to you " + (status.nextOpen === "now" ? "shortly." : status.nextOpen + ".");
+      : "We're offline. Live chat runs " + hoursText() + ".";
   }
 
   function setBody(name, nodes, focusSelector) {
@@ -282,7 +291,7 @@
           return;
         }
         if (r.error === "after_hours") {
-          status = { mode: status && status.mode, open: false, nextOpen: r.nextOpen || "soon", noReplySeconds: 180 };
+          status = { mode: status && status.mode, open: false, nextOpen: r.nextOpen || "soon", noReplySeconds: 180, hours: status && status.hours };
           setSubtitle();
           state.name = name.value.trim(); state.email = email.value.trim(); state.phone = phone.value.trim();
           firstVisitorText = text.value.trim();
@@ -307,7 +316,7 @@
   function showCaptureForm(reason) {
     var intro = reason === "no_reply"
       ? "Sorry for the wait. Leave your details and we'll get back to you as soon as someone is free."
-      : "We're offline right now. Leave your details and we'll get back to you " + (status && status.nextOpen && status.nextOpen !== "now" ? status.nextOpen + "." : "shortly.");
+      : "Live chat is available " + hoursText() + ". Leave your details and we'll get back to you " + (status && status.nextOpen && status.nextOpen !== "now" ? status.nextOpen + "." : "shortly.");
     var name = el("input", { type: "text", name: "name", maxlength: "120", autocomplete: "name", required: true });
     var email = el("input", { type: "email", name: "email", maxlength: "254", autocomplete: "email" });
     var phone = el("input", { type: "tel", name: "phone", maxlength: "32", autocomplete: "tel" });
@@ -446,8 +455,8 @@
       if (r.error === "not_found") { forget(); if (panelOpen) refreshStatus().then(showChoose); return; }
       if (!r.ok) { schedulePoll(panelOpen ? POLL_OPEN_MS * 2 : POLL_CLOSED_MS); return; }
       latest = r;
-      status = { mode: status && status.mode, open: r.open, nextOpen: r.nextOpen, noReplySeconds: (status && status.noReplySeconds) || 180 };
-      if (panelOpen) setSubtitle();
+      status = { mode: status && status.mode, open: r.open, nextOpen: r.nextOpen, noReplySeconds: (status && status.noReplySeconds) || 180, hours: status && status.hours };
+      setSubtitle();
       if (r.captured && !state.captured) { state.captured = true; save(); }
 
       // The call-back offer is due once the visitor's oldest unanswered message has
@@ -516,6 +525,11 @@
       ".launcher:hover{background:#0d50cc}",
       ".launcher:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #7fb0ff;outline-offset:2px}",
       ".launcher .icon{font-size:18px;line-height:1}",
+      ".launcher .live{display:none;width:9px;height:9px;border-radius:50%;background:#31d158;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 8px 2px rgba(49,209,88,.9);animation:caoLive 2s ease-in-out infinite}",
+      ".launcher.online .live{display:inline-block}",
+      ":host(.is-open) .launcher .live{display:none}",
+      "@keyframes caoLive{0%,100%{opacity:1}50%{opacity:.55}}",
+      "@media (prefers-reduced-motion:reduce){.launcher .live{animation:none}}",
       ".launcher .dot{display:none;width:10px;height:10px;border-radius:50%;background:#ff5a5a;border:2px solid #fff}",
       ".launcher.unread .dot{display:inline-block}",
       ".launcher.nudge{background:#0d50cc;box-shadow:0 0 0 3px rgba(255,204,51,.9),0 8px 24px rgba(0,0,0,.35)}",
