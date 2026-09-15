@@ -12,7 +12,7 @@
  *
  * Flow:
  *   1. The visitor picks Hire or Become (Become is pre-selected on /become pages).
- *   2. During live chat hours (9am to 5pm AEST, Monday to Friday; the green LED is on): name, optional email/phone, first message, then live
+ *   2. During live chat hours (9am to 5pm AEST, Monday to Friday; the green LED is on): name, email, phone (both required), first message, then live
  *      chat. If nobody has replied after the service's no-reply window, the widget
  *      offers the call-back form so the enquiry is never lost.
  *   3. After hours: the call-back form straight away.
@@ -254,8 +254,8 @@
   // ---- step 2a: live chat start -------------------------------------------
   function showStartForm(message) {
     var name = el("input", { type: "text", name: "name", maxlength: "120", autocomplete: "name", required: true });
-    var email = el("input", { type: "email", name: "email", maxlength: "254", autocomplete: "email" });
-    var phone = el("input", { type: "tel", name: "phone", maxlength: "32", autocomplete: "tel" });
+    var email = el("input", { type: "email", name: "email", maxlength: "254", autocomplete: "email", required: true });
+    var phone = el("input", { type: "tel", name: "phone", maxlength: "32", autocomplete: "tel", required: true });
     var text = el("textarea", { name: "message", rows: "3", maxlength: "2000", required: true });
     var hp = honeypot();
     var err = el("div");
@@ -269,6 +269,7 @@
       e.preventDefault();
       err.textContent = "";
       if (!name.value.trim() || !text.value.trim()) { err.appendChild(errorLine("Please add your name and a message.")); return; }
+      if (!email.value.trim() || !phone.value.trim()) { err.appendChild(errorLine("Please add your email and phone number so we can reach you.")); return; }
       submit.disabled = true;
       submit.textContent = "Starting...";
       api("start", {
@@ -303,8 +304,8 @@
     } }, [
       el("p", { class: "lead", text: state.enquiryType === "become" ? "Ask us about becoming a CAO." : "Ask us about hiring a CAO." }),
       field("Your name *", name),
-      field("Email", email),
-      field("Phone", phone),
+      field("Email *", email),
+      field("Phone *", phone),
       field("Message *", text),
       hp, err, submit,
       el("button", { type: "button", class: "link", text: "Back", onclick: showChoose })
@@ -318,8 +319,8 @@
       ? "Sorry for the wait. Leave your details and we'll get back to you as soon as someone is free."
       : "Live chat is available " + hoursText() + ". Leave your details and we'll get back to you " + (status && status.nextOpen && status.nextOpen !== "now" ? status.nextOpen + "." : "shortly.");
     var name = el("input", { type: "text", name: "name", maxlength: "120", autocomplete: "name", required: true });
-    var email = el("input", { type: "email", name: "email", maxlength: "254", autocomplete: "email" });
-    var phone = el("input", { type: "tel", name: "phone", maxlength: "32", autocomplete: "tel" });
+    var email = el("input", { type: "email", name: "email", maxlength: "254", autocomplete: "email", required: true });
+    var phone = el("input", { type: "tel", name: "phone", maxlength: "32", autocomplete: "tel", required: true });
     var question = el("textarea", { name: "question", rows: "3", maxlength: "2000", required: true });
     var byCall = el("input", { type: "radio", name: "pref", value: "call", checked: true });
     var byEmail = el("input", { type: "radio", name: "pref", value: "email" });
@@ -336,8 +337,7 @@
       err.textContent = "";
       var pref = byEmail.checked ? "email" : "call";
       if (!name.value.trim() || !question.value.trim()) { err.appendChild(errorLine("Please add your name and your question.")); return; }
-      if (pref === "call" && !phone.value.trim()) { err.appendChild(errorLine("Add a phone number so we can call you, or choose email.")); return; }
-      if (pref === "email" && !email.value.trim()) { err.appendChild(errorLine("Add an email address, or choose a call.")); return; }
+      if (!email.value.trim() || !phone.value.trim()) { err.appendChild(errorLine("Please add your email and phone number so we can reach you.")); return; }
       submit.disabled = true;
       submit.textContent = "Sending...";
       var payload = {
@@ -365,8 +365,8 @@
     } }, [
       el("p", { class: "lead", text: intro }),
       field("Your name *", name),
-      field("Phone", phone),
-      field("Email", email),
+      field("Phone *", phone),
+      field("Email *", email),
       el("fieldset", { class: "pref" }, [
         el("legend", { text: "Best way to reach you" }),
         el("label", {}, [byCall, " Call me"]),
@@ -508,7 +508,7 @@
       case "rate_limited": return "Too many messages from here just now. Please try again in a minute.";
       case "invalid_email": return "That email address doesn't look right.";
       case "invalid_phone": return "That phone number doesn't look right.";
-      case "contact_required": return "Add a phone number or email so we can reach you.";
+      case "contact_required": return "Please add your email and phone number so we can reach you.";
       case "phone_required": return "Add a phone number so we can call you, or choose email.";
       case "email_required": return "Add an email address, or choose a call.";
       case "network": return "We couldn't reach the chat. Check your connection and try again.";
