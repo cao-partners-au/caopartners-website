@@ -29,6 +29,10 @@
 
   var script = document.currentScript;
   var BASE = ((script && script.getAttribute("data-chat-base")) || "https://chat.caopartners.com.au").replace(/\/$/, "");
+  // The site's own logo (black artwork), drawn white on the dark panel as the plan pages do.
+  // Lazy inside the hidden panel, so it only downloads when a visitor opens the chat; absolute
+  // so it still resolves on pages served from another path or subdomain.
+  var LOGO_URL = "https://caopartners.com.au/logo.svg";
   var STORE_KEY = "cao_chat_v1";
   var POLL_OPEN_MS = 4000;
   var POLL_CLOSED_MS = 20000;
@@ -114,7 +118,7 @@
   var closeBtn = el("button", { class: "close", type: "button", "aria-label": "Close chat", text: "\u00d7" });
   var body = el("div", { class: "body" });
   var panel = el("section", { class: "panel", role: "dialog", "aria-label": "CAO Partners chat", hidden: true }, [
-    el("header", {}, [el("div", {}, [el("div", { class: "title", text: "CAO Partners" }), titleLine]), closeBtn]),
+    el("header", {}, [el("div", {}, [el("img", { class: "logo", src: LOGO_URL, alt: "CAO Partners", loading: "lazy", decoding: "async" }), titleLine]), closeBtn]),
     body
   ]);
   root.appendChild(style);
@@ -520,7 +524,7 @@
       ".panel{position:fixed;right:20px;bottom:84px;z-index:2147483000;width:370px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 110px);display:flex;flex-direction:column;background:#0c0d1a;color:#fff;border:1px solid #1e2140;border-radius:16px;overflow:hidden;box-shadow:0 18px 48px rgba(0,0,0,.5)}",
       ".panel[hidden]{display:none}",
       "header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:14px 16px;background:#070812;border-bottom:1px solid #1e2140}",
-      ".title{font-weight:700;font-size:16px}",
+      ".logo{display:block;height:30px;width:auto;margin:0 0 4px;filter:brightness(0) invert(1)}",
       ".sub{font-size:12px;color:#aab0d6;margin-top:2px;line-height:1.35}",
       ".close{background:transparent;border:0;color:#aab0d6;font-size:24px;line-height:1;cursor:pointer;padding:0 4px}",
       ".body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}",
