@@ -211,7 +211,7 @@
     if (!status) { titleLine.textContent = ""; return; }
     titleLine.textContent = status.open
       ? "We're online. Replies usually take a few minutes."
-      : "We're offline. Live chat runs " + hoursText() + ".";
+      : (status.holiday ? "We're closed for " + status.holiday : "We're offline") + ". Live chat runs " + hoursText() + ".";
   }
 
   function setBody(name, nodes, focusSelector) {
@@ -291,7 +291,7 @@
           return;
         }
         if (r.error === "after_hours") {
-          status = { mode: status && status.mode, open: false, nextOpen: r.nextOpen || "soon", noReplySeconds: 180, hours: status && status.hours };
+          status = { mode: status && status.mode, open: false, nextOpen: r.nextOpen || "soon", noReplySeconds: 180, hours: status && status.hours, holiday: status && status.holiday };
           setSubtitle();
           state.name = name.value.trim(); state.email = email.value.trim(); state.phone = phone.value.trim();
           firstVisitorText = text.value.trim();
@@ -455,7 +455,7 @@
       if (r.error === "not_found") { forget(); if (panelOpen) refreshStatus().then(showChoose); return; }
       if (!r.ok) { schedulePoll(panelOpen ? POLL_OPEN_MS * 2 : POLL_CLOSED_MS); return; }
       latest = r;
-      status = { mode: status && status.mode, open: r.open, nextOpen: r.nextOpen, noReplySeconds: (status && status.noReplySeconds) || 180, hours: status && status.hours };
+      status = { mode: status && status.mode, open: r.open, nextOpen: r.nextOpen, noReplySeconds: (status && status.noReplySeconds) || 180, hours: status && status.hours, holiday: status && status.holiday };
       setSubtitle();
       if (r.captured && !state.captured) { state.captured = true; save(); }
 
