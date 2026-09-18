@@ -19,6 +19,25 @@ const OPEN = "<!-- cao-chat-widget -->";
 const CLOSE = "<!-- /cao-chat-widget -->";
 export const CHAT_TAG = `${OPEN}<script src="/chat-widget.js" data-chat-base="${CHAT_BASE}" defer></script>${CLOSE}`;
 
+/* FIRST-TOUCH ATTRIBUTION rides on the same every-page stamp (18 Sep 2026), so the
+   three page-writing scripts keep it on a republish for free. It is NOT deferred: it
+   must stamp the hidden first_touch field before a visitor can submit. It is its own
+   marked block, stripped and re-added like the chat tag, so both stay idempotent.
+   Same-origin, so the strict CSP pages already allow it (script-src 'self'). */
+const ATTR_OPEN = "<!-- cao-attribution -->";
+const ATTR_CLOSE = "<!-- /cao-attribution -->";
+export const ATTRIBUTION_TAG = `${ATTR_OPEN}<script src="/attribution.js"></script>${ATTR_CLOSE}`;
+
+function stripBlock(html, open, close) {
+  const start = html.indexOf(open);
+  if (start < 0) return html;
+  const end = html.indexOf(close, start);
+  if (end < 0) throw new Error(`${open} opening marker without a closing marker`);
+  let after = end + close.length;
+  if (html[after] === "\n") after++;
+  return html.slice(0, start) + html.slice(after);
+}
+
 export function stripChatWidget(html) {
   const start = html.indexOf(OPEN);
   if (start < 0) return html;
@@ -43,8 +62,8 @@ function allowChatInCsp(html) {
 }
 
 export function withChatWidget(html) {
-  const out = allowChatInCsp(stripChatWidget(html));
+  const out = allowChatInCsp(stripBlock(stripChatWidget(html), ATTR_OPEN, ATTR_CLOSE));
   const body = out.lastIndexOf("</body>");
   if (body < 0) throw new Error("page has no </body>");
-  return out.slice(0, body) + CHAT_TAG + "\n" + out.slice(body);
+  return out.slice(0, body) + ATTRIBUTION_TAG + "\n" + CHAT_TAG + "\n" + out.slice(body);
 }
