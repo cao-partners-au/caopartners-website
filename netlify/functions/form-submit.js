@@ -837,12 +837,19 @@ exports.handler = async (event) => {
         // AND the existing fb_fbc rule did not fire, so neither the sealed funnels nor
         // the Creator Army rule change. It recovers the origin the form page's own
         // referrer loses (nearly always our homepage). See netlify/lib/first-touch.js.
-        lead_source:        fields.lead_source || (fields.fb_fbc ? "Creator Army" : (firstTouch ? firstTouch.source : null)),
+        // fb_fbc NO LONGER MEANS CREATOR ARMY (18 Sep 2026, Michael). Their ads stopped
+        // on 11 Sep and our paid Meta goes to the sealed /cao funnel, so a Facebook or
+        // Instagram click on the base site is our own organic posts. First touch wins
+        // when it has evidence (it still credits Creator Army for a paid click carrying
+        // their 1202... campaign id); otherwise an fb_fbc lead is Organic Social.
+        lead_source:        fields.lead_source || (firstTouch ? firstTouch.source : (fields.fb_fbc ? "Social" : null)),
         // Keep the funnel's own detail (organic page slug); otherwise the first-touch
         // evidence, then the captured request origin, so a synthetic/bot submission
         // still reveals its origin in Supabase directly.
         lead_source_detail: fields.lead_source_detail || liDetail ||
-          (!fields.lead_source && !fields.fb_fbc && firstTouch ? `${firstTouch.detail} | ${clientSrc}`.slice(0, 900) : clientSrc),
+          (!fields.lead_source && firstTouch ? `${firstTouch.detail} | ${clientSrc}`.slice(0, 900)
+            : !fields.lead_source && fields.fb_fbc ? `network=facebook click=fbc | ${clientSrc}`.slice(0, 900)
+            : clientSrc),
         created_at:   isoNow,
         updated_at:   isoNow,
       });
