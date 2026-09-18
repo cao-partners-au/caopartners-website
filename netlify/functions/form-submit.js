@@ -7,6 +7,9 @@ const { parse }      = require("querystring");
 const https          = require("https");
 const { URL }        = require("url");
 const { randomUUID, createHash } = require("crypto");
+// Outside netlify/functions on purpose: anything in that folder is deployed as its
+// own endpoint. esbuild bundles this into form-submit.
+const { classifyFirstTouch } = require("../lib/first-touch");
 
 const SUPABASE_URL         = process.env.SUPABASE_URL;
 const SUPABASE_KEY         = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -680,6 +683,10 @@ exports.handler = async (event) => {
       ` ua=${(h["user-agent"] || "?").slice(0, 120)}` +
       ` ref=${h["referer"] || h["referrer"] || "?"}`;
     console.log(`[form-src] ${clientSrc} | form="${formName}" src="${fields.lead_source || ""}" email="${fields.email}"`);
+    let firstTouch = null;
+    try { firstTouch = classifyFirstTouch(fields.first_touch, h["referer"] || h["referrer"] || ""); }
+    catch (e) { console.log(`[form-submit] first_touch classify failed: ${e.message}`); }
+    if (firstTouch) console.log(`[form-src] first_touch=${firstTouch.source} ${firstTouch.detail}`);
 
     console.log(`[form-submit] form="${formName}" email="${fields.email}" keys=${Object.keys(fields).join(",")}`);
     console.log(`[form-submit] isBase64=${event.isBase64Encoded} bodyLen=${(event.body||"").length}`);
@@ -826,10 +833,16 @@ exports.handler = async (event) => {
            reached Meta but never the CRM. A plain comparison yields true/false and
            can never be null. */
         outreach_email_sent: fields.lead_source === "OLC",
-        lead_source:        fields.lead_source || (fields.fb_fbc ? "Creator Army" : null),
-        // Keep the funnel's own detail (organic page slug); otherwise stash the captured
-        // source so a synthetic/bot submission reveals its origin in Supabase directly.
-        lead_source_detail: fields.lead_source_detail || liDetail || clientSrc,
+        // FIRST TOUCH (18 Sep 2026). Consulted only when the funnel declared no channel
+        // AND the existing fb_fbc rule did not fire, so neither the sealed funnels nor
+        // the Creator Army rule change. It recovers the origin the form page's own
+        // referrer loses (nearly always our homepage). See netlify/lib/first-touch.js.
+        lead_source:        fields.lead_source || (fields.fb_fbc ? "Creator Army" : (firstTouch ? firstTouch.source : null)),
+        // Keep the funnel's own detail (organic page slug); otherwise the first-touch
+        // evidence, then the captured request origin, so a synthetic/bot submission
+        // still reveals its origin in Supabase directly.
+        lead_source_detail: fields.lead_source_detail || liDetail ||
+          (!fields.lead_source && !fields.fb_fbc && firstTouch ? `${firstTouch.detail} | ${clientSrc}`.slice(0, 900) : clientSrc),
         created_at:   isoNow,
         updated_at:   isoNow,
       });
